@@ -3,17 +3,17 @@
 import FreeCAD, FreeCADGui, os
 
 def modulePath():
-    """returns the current Nico design module path
+    """returns the current design module path
     @return Module path"""
-    path1 = FreeCAD.ConfigGet("AppHomePath") + "Mod/Nico"
-    path2 = FreeCAD.ConfigGet("UserAppData") + "Mod/Nico"
+    path1 = FreeCAD.ConfigGet("AppHomePath") + "Mod/FreeCADTools"
+    path2 = FreeCAD.ConfigGet("UserAppData") + "Mod/FreeCADTools"
     if os.path.exists(path2):
         return path2
     else:
         return path1
 
 def iconsPath():
-    """returns the current Nico design module icons path
+    """returns the current design module icons path
     @return Icons path"""
     path = modulePath() + "/Icones"
     return path

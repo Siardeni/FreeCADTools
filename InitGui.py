@@ -1,6 +1,6 @@
 # -*- coding:Utf-8 -*-
-class NicoTools (Workbench):
-	MenuText = "NicoTools"
+class FreeCADTools (Workbench):
+	MenuText = "FreeCADTools"
 	ToolTip = "Petits outils generalistes"
 	Icon = """
 		/* XPM */
@@ -87,7 +87,7 @@ class NicoTools (Workbench):
 	"""
 
 	def Initialize(self):
-		import NicoTools
+		import FreeCADTools
 		commandslistPr = ["M_Corniere","M_TubeCarreRectangle","M_TubeCarreRectangleDeco","M_ProfilIPN"]
 		commandslistTo = ["M_ToleCorniere","M_ToleU","M_ToleBoite","M_ToleZ","M_ToleOmega"]
 		commandslistMp = ["M_MAP"]
@@ -103,15 +103,15 @@ class NicoTools (Workbench):
 		self.appendToolbar("Mise en plan",commandslistMp)
 		self.appendToolbar("Rotation Vue",commandslistTu)
 		self.appendToolbar("Outils",commandslistOu)
-		self.appendMenu(["Nico Tools","Profils"],commandslistPr)
-		self.appendMenu(["Nico Tools","Toles"],commandslistTo)
-		self.appendMenu(["Nico Tools","Mise en plan"],commandslistMp)
-		self.appendMenu(["Nico Tools","Rotation Vue"],commandslistTu)
-		self.appendMenu(["Nico Tools","Outils"],commandslistOu)
+		self.appendMenu(["FreeCADTools","Profils"],commandslistPr)
+		self.appendMenu(["FreeCADTools","Toles"],commandslistTo)
+		self.appendMenu(["FreeCADTools","Mise en plan"],commandslistMp)
+		self.appendMenu(["FreeCADTools","Rotation Vue"],commandslistTu)
+		self.appendMenu(["FreeCADTools","Outils"],commandslistOu)
 		
 		self.appendMenu(["Calpinage"],commandslistCalpinage)
 		self.appendMenu(["Points"],commandslistPoints)
 		self.appendMenu(["Eurocode"],commandslistEurocode)
 	
 		
-Gui.addWorkbench(NicoTools())
+Gui.addWorkbench(FreeCADTools())

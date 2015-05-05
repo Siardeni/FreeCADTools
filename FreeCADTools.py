@@ -1,7 +1,7 @@
 # -*- coding:Utf-8 -*-
 #############################################################
 # Programme Python type                     				#
-# Auteur : Nicolas Tuffereau, Angers, 2011  				#
+# Auteur : Nicolas Tuffereau, 2011							#
 # Licence : GPL												#
 # Ateliers de petits outils généraux			            #
 # 												            #
@@ -10,7 +10,7 @@
 #####################################
 # Importation de fonctions externes :
 
-import FreeCAD, FreeCADGui, Part, math, os, time, NicoTools, Draft
+import FreeCAD, FreeCADGui, Part, math, os, time, FreeCADTools, Draft
 import Chemin
 from FreeCAD import Base
 from pivy import coin
@@ -554,10 +554,10 @@ class ToleOmega:
 			
 			print "----------------------------------------------------------"
 			print "Nouvelle pièce"
-			print "Largeur de l'appui théorique : ",NicoTools.Arrondi(LappuiT,1)," mm"
-			print "Largeur de l'appui haut : ",NicoTools.Arrondi(Lappui,1)," mm"
-			print "Alpha : ",NicoTools.Arrondi(math.degrees(Alpha),1)," °"
-			print "Beta : ",NicoTools.Arrondi(math.degrees(Beta),1)," °"
+			print "Largeur de l'appui théorique : ",FreeCADTools.Arrondi(LappuiT,1)," mm"
+			print "Largeur de l'appui haut : ",FreeCADTools.Arrondi(Lappui,1)," mm"
+			print "Alpha : ",FreeCADTools.Arrondi(math.degrees(Alpha),1)," °"
+			print "Beta : ",FreeCADTools.Arrondi(math.degrees(Beta),1)," °"
 
 		fp.Shape=S1
 		fp.Placement=pl
@@ -579,7 +579,7 @@ class ToleOmegaDev:
 
 		S1=Part.makeBox(Dev,fp.Source.Epaisseur.Value,fp.Source.Longueur.Value)
 
-		print "Largeur developpée : ", NicoTools.Arrondi(Dev,1)," mm"
+		print "Largeur developpée : ", FreeCADTools.Arrondi(Dev,1)," mm"
 
 		fp.Shape=S1
 		fp.Placement=pl
@@ -1356,8 +1356,8 @@ class RapportCalpinage1D:
 		nbBarreBrute=fp.InfosCalpinage.InfoBarreBrute[0]
 		sommeLChutes=sommeLChutes+nbBarreBrute*fp.InfosCalpinage.LongueurBarreBruteR.Value
 		
-		Pertes=NicoTools.Arrondi(100.0-sommeLPieces*100.0/sommeLChutes,1)
-		Pertesmm=NicoTools.Arrondi(sommeLChutes-sommeLPieces,1)
+		Pertes=FreeCADTools.Arrondi(100.0-sommeLPieces*100.0/sommeLChutes,1)
+		Pertesmm=FreeCADTools.Arrondi(sommeLChutes-sommeLPieces,1)
 		longByLine=[]
 		Line=[]
 		n=0
@@ -1401,7 +1401,7 @@ class RapportCalpinage1D:
 					Barresss="barre neuve"
 				else :
 					Barresss="barres neuves"
-				obFichier.write("	"+str(nbBarreBrute)+" "+Barresss+" de "+str(NicoTools.Arrondi(fp.InfosCalpinage.LongueurBarreBruteR.Value,0))+" mm à commander\n")
+				obFichier.write("	"+str(nbBarreBrute)+" "+Barresss+" de "+str(FreeCADTools.Arrondi(fp.InfosCalpinage.LongueurBarreBruteR.Value,0))+" mm à commander\n")
 			obFichier.write("\n")
 		def rapParLigne():
 			obFichier.write("\n")
@@ -1432,17 +1432,17 @@ class RapportCalpinage1D:
 						PC=" pièces"
 					else:
 						PC=" pièce"
-					obFichier.write("			"+str(lq[n])+PC+" de : "+str(NicoTools.Arrondi(ll[n],1))+" mm\n")
+					obFichier.write("			"+str(lq[n])+PC+" de : "+str(FreeCADTools.Arrondi(ll[n],1))+" mm\n")
 				return somme
 			for chts in range(len(fp.InfosCalpinage.ChutesChoix)):
 				obFichier.write("\n")
-				obFichier.write("		Chute N° "+str(chts+1)+" - "+str(NicoTools.Arrondi(fp.InfosCalpinage.ChutesChoix[chts],1))+" mm :\n")
+				obFichier.write("		Chute N° "+str(chts+1)+" - "+str(FreeCADTools.Arrondi(fp.InfosCalpinage.ChutesChoix[chts],1))+" mm :\n")
 				obFichier.write("\n")
 				somme=analyseListePiece(inc)
 				reste=fp.InfosCalpinage.ChutesChoix[chts]-somme-len(longByLine[inc])*fp.InfosCalpinage.EpTraitCoupe.Value
 				if reste < 0:
 					reste=0.0
-				obFichier.write("			reste : "+str(NicoTools.Arrondi(reste,1))+" mm ("+str(NicoTools.Arrondi(100.0*reste/(somme+reste),1))+"%)\n")
+				obFichier.write("			reste : "+str(FreeCADTools.Arrondi(reste,1))+" mm ("+str(FreeCADTools.Arrondi(100.0*reste/(somme+reste),1))+"%)\n")
 				inc=inc+1
 			obFichier.write("\n")
 			
@@ -1451,13 +1451,13 @@ class RapportCalpinage1D:
 				obFichier.write("\n")
 				
 				
-				obFichier.write("		Barre N° "+str(pie+1)+" - "+str(NicoTools.Arrondi(fp.InfosCalpinage.LongueurBarreBruteR.Value,1))+" mm :\n")
+				obFichier.write("		Barre N° "+str(pie+1)+" - "+str(FreeCADTools.Arrondi(fp.InfosCalpinage.LongueurBarreBruteR.Value,1))+" mm :\n")
 				obFichier.write("\n")
 				somme=analyseListePiece(inc)
 				reste=fp.InfosCalpinage.LongueurBarreBruteR.Value-somme-len(longByLine[inc])*fp.InfosCalpinage.EpTraitCoupe.Value
 				if reste < 0:
 					reste=0.0
-				obFichier.write("			reste : "+str(NicoTools.Arrondi(reste,1))+" mm ("+str(NicoTools.Arrondi(100.0*reste/(somme+reste),1))+"%)\n")
+				obFichier.write("			reste : "+str(FreeCADTools.Arrondi(reste,1))+" mm ("+str(FreeCADTools.Arrondi(100.0*reste/(somme+reste),1))+"%)\n")
 				
 				inc=inc+1
 		
