@@ -1494,13 +1494,86 @@ def LectureFichierPoints3D():
 	obFichier.close
 	return ListePoints	
 	
+#
+#	Pièces diverses
+#
+
+class Palette:
+	"Palette type Eur"
+	def __init__(self, obj):
+		obj.Proxy = self
+	# def onChanged(self, fp, prop):
+		# if prop == "L1" or prop == "L2":
+			# self.execute(fp)
+
+	def execute(self, fp):
+		Longueur=1200.0
+		Largeur=800.0
+		EpPlanche=22.0
+		EpBois=100.0
+		LaPlanche1=100.0
+		LongBois=145.0
+		Ec1=227.5
+		Ec2=382.5
+		Ec3=40.0
+		LaBois=145.0
+		LaPlanche2=LaBois
+		LaPlanche3=LaPlanche1
+		Chanfrein=25.0
+		#Structure
+		B1=Part.makeBox(Longueur,LaPlanche1,EpPlanche)
+		S1=B1.copy()
+		V2=Base.Vector(0,0,EpPlanche)
+		B2=Part.makeBox(LongBois,LaPlanche1,EpBois,V2)
+		V3=Base.Vector(0,0,EpPlanche+EpBois)
+		B3=Part.makeBox(LongBois,Largeur,EpPlanche,V3)
+		B4=B1.copy()
+		B5=B2.copy()
+		V4=Base.Vector(0,Largeur-LaPlanche1,0)
+		B4.translate(V4)
+		B5.translate(V4)
+		S1=S1.fuse(B4)
+		V6=Base.Vector(0,LaPlanche1+Ec1,0)
+		B6=Part.makeBox(Longueur,LaBois,EpPlanche,V6)
+		S1=S1.fuse(B6)
+		V7=Base.Vector(0,LaPlanche1+Ec1,EpPlanche)
+		B7=Part.makeBox(LongBois,LaBois,EpBois,V7)
+		B7=B7.fuse(B5)
+		B7=B7.fuse(B2)
+		B7=B7.fuse(B3)
+		S1=S1.fuse(B7)
+		V8=Base.Vector(LongBois+Ec2,0,0)
+		B8=B7.copy()
+		B8.translate(V8)
+		S1=S1.fuse(B8)
+		V9=Base.Vector(2*(LongBois+Ec2),0,0)
+		B9=B7.copy()
+		B9.translate(V9)
+		S1=S1.fuse(B9)
+		#Plancher
+		V10=Base.Vector(0,0,EpBois+2*EpPlanche)
+		B10=Part.makeBox(Longueur,LaPlanche2,EpPlanche,V10)
+		B11=B10.copy()
+		B11.translate(V6)
+		V12=Base.Vector(0,Largeur-LaPlanche2,0)
+		B12=B10.copy()
+		B12.translate(V12)
+		S1=S1.fuse(B10).fuse(B11).fuse(B12)
+		V13=Base.Vector(0,LaPlanche1+Ec1-Ec3-LaPlanche3,EpBois+2*EpPlanche)
+		B13=Part.makeBox(Longueur,LaPlanche3,EpPlanche,V13)
+		V14=Base.Vector(0,LaPlanche3+2*Ec3+LaBois,0)
+		B14=B13.copy()
+		B14.translate(V14)
+		S1=S1.fuse(B13).fuse(B14)
+		#S1=S1.makeChamfer(Chanfrein,[S1.Edges[4],S1.Edges[13],S1.Edges[245],S1.Edges[298]])
+		fp.Shape=S1
 
 		
 		
 #----------------------------------------------------
-# Menus
+#	Menus
 
-# Profilés
+#	Profilés
 
 class MCorniere:
 	"Creation profil de corniere"
@@ -1576,7 +1649,7 @@ class MProfilIPN:
 
 		
 
-# Tôles 
+#	Tôles 
 #
 
 class MToleCorniere:
@@ -2163,7 +2236,31 @@ class MPoints3D:
 	def GetResources(self): 
 		return {'MenuText': 'ImportPoints3D', 'ToolTip': 'Import Points 3D'} 	   
 		
-		
+#	
+#	Palette
+
+class MPalette:
+	"Creation Palette type Eur"
+	def Activated(self): 
+		FreeCAD.newDocument("Palette")
+		palette=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Palette")
+		Palette(palette)
+		palette.ViewObject.Proxy=0
+		App.ActiveDocument.recompute()
+		Gui.SendMsgToActiveView("ViewFit")
+	def GetResources(self): 
+		return {'MenuText': 'Palette', 'ToolTip': 'Palette'} 
+
+
+
+def proceed():
+	FreeCAD.newDocument("Palette")
+	palette=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Palette")
+	Palette(palette)
+	palette.ViewObject.Proxy=0
+	App.ActiveDocument.recompute()
+	Gui.SendMsgToActiveView("ViewFit")
+
 		
 FreeCADGui.addCommand('M_Corniere', MCorniere())
 FreeCADGui.addCommand('M_TubeCarreRectangle', MTubeCarreRectangle())
@@ -2187,5 +2284,6 @@ FreeCADGui.addCommand('M_OldFuse', MOldFuse())
 FreeCADGui.addCommand('M_MCalpinage1D', MCalpinage1D())
 FreeCADGui.addCommand('M_MPoints3D', MPoints3D())
 FreeCADGui.addCommand('M_PlatineEurocode', MPlatineEurocode())
+FreeCADGui.addCommand('M_Palette', MPalette())
 
 

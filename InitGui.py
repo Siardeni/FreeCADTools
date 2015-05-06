@@ -96,6 +96,8 @@ class FreeCADTools (Workbench):
 		commandslistCalpinage = ["M_MCalpinage1D"]
 		commandslistPoints = ["M_MPoints3D"]
 		commandslistEurocode = ["M_PlatineEurocode"]
+		commandslistDivers = ["M_Palette"]
+		
 	
 		
 		self.appendToolbar("Profils",commandslistPr)
@@ -112,6 +114,8 @@ class FreeCADTools (Workbench):
 		self.appendMenu(["Calpinage"],commandslistCalpinage)
 		self.appendMenu(["Points"],commandslistPoints)
 		self.appendMenu(["Eurocode"],commandslistEurocode)
+		self.appendMenu(["Divers"],commandslistDivers)
+		
 	
 		
 Gui.addWorkbench(FreeCADTools())
