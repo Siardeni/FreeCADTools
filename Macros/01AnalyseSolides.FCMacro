@@ -1,0 +1,445 @@
+# -*- coding:Utf-8 -*-
+######################################################
+# Programme Python type                              #
+# Auteur : Nicolas Tuffereau, Angers, decembre 2015  #
+# Licence : GPL                                      #
+######################################################
+
+
+# Reste à faire
+# Identifier tube cintrés
+# Platine
+# Tôles pliées
+
+
+
+
+
+#####################################
+# Importation de fonctions externes :
+
+#from os import *
+import FreeCAD, FreeCADGui, Part, Draft, math, MeshPart, Mesh, Drawing, DraftGeomUtils, WorkingPlane
+from FreeCAD import Base
+App=FreeCAD
+Gui=FreeCADGui
+
+tolerance=0.000001
+
+#Copie Macro WorkFeature
+
+def intersecPerpendicularLine(A, B, C, info=0):
+    """ Return the intersection between the Line L defined by A and B
+    and the Line perpendicular crossing the point C.
+    """
+    # L is the line defined by 2 points A(ax, ay, az) and B(bx, by, bz), and
+    # may be also defined as the line crossing A(ax, ay, az) and along the 
+    # direction AB = U(bx-ax, by-ay, bz-az)
+    # If U(ux, uy, uz) = U(bx-ax, by-ay, bz-az) the Line L is the set of 
+    # points M as defined by eq(1):
+    # Vector(MA) = k * Vector(U)
+    # with k Real 
+    if A == B:
+        return None
+    ax, ay, az = A.x, A.y, A.z
+    bx, by, bz = B.x, B.y, B.z
+    cx, cy, cz = C.x, C.y, C.z
+    ux, uy, uz = bx - ax, by - ay, bz - az
+    #U = App.Vector(ux, uy, uz)
+    # We look for T(tx, ty, tz) on the Line L
+    # eq(1) in parametric form; k exists and follows eq(2):
+    # tx = ax + k * ux 
+    # ty = ay + k * uy
+    # tz = az + k * uz
+    
+    # and vector V(vx, vy, vz) defined by point C and point T
+    # vx, vy, vz = tx - cx, ty - cy, tz - cz
+    # V must be perpendicular to the Line L 
+    # We consider Dot product between U and V and give us eq(3) 
+    # U.V = 0
+    # so ux * vx + uy * vy + uz * vz = 0
+    # ux * (tx - cx) + uy * (ty - cy) + uz * (tz - cz) = 0
+    # ux * (ax + k * ux  - cx) + uy * (ay + k * uy - cy) + uz * (az + k * uz  - cz) = 0
+    # ux*ax + ux*(k*ux) - ux*cx + uy*ay + uy*(k*uy) - uy*cy +  uz*az + uz*(k*uz) - uz*cz = 0
+    if (ux*ux + uy*uy + uz*uz) == 0.0:
+        return None
+    k = (ux*cx + uy*cy + uz*cz - ux*ax - uy*ay - uz*az)/(ux*ux + uy*uy + uz*uz)   
+    tx = ax + k * ux 
+    ty = ay + k * uy
+    tz = az + k * uz
+    T = App.Vector(tx, ty, tz)
+    vx, vy, vz = tx - cx, ty - cy, tz - cz
+    V = App.Vector(vx, vy, vz)
+    distance = math.sqrt(V.dot(V))
+    Tprime = T + V
+    if info == 1:
+        print_point(T, msg="Intersection Point at distance of " +
+                    str(distance) + " is : ")
+    return T, distance, Tprime
+
+#Print a message on console.   
+def print_msg(message):
+    """ Print a message on console.
+    """
+    print message
+    App.Console.PrintMessage( message + "\n")
+
+def print_point(point, msg=""):
+    """ Print x,y and z of a point:vector.
+    """
+    if point.__class__.__name__ != "Vector":
+        print_msg("Not a Vector to print !")
+        return
+    #print_msg(str(point))
+    #m_type = point.__class__.__name__
+    #print_msg(str(m_type))
+    print_msg(str(msg) +
+              "x =" + str(point.x) + ", "
+              "y =" + str(point.y) + ", "
+              "z =" + str(point.z))
+    return
+
+def centerLinePoint(edge,info=0):
+    """ Return the center point of the Line.
+    """
+    center = None
+    #VVector_A=edge.valueAt( 0.0 )
+    Vector_A = edge.Vertexes[0].Point
+    if info != 0:
+        print_point(Vector_A,"Origin of line selected is : ") 
+    #Vector_B=edge.valueAt( edge.Length )
+    Vector_B = edge.Vertexes[-1].Point
+    if info != 0:
+        print_point(Vector_B,"End of line selected is : ") 
+    Vector_MidPoint = Vector_B + Vector_A
+    center = Vector_MidPoint.multiply(0.5)
+    if info != 0:
+        print_point(center,"Center of line selected is : ") 
+    return center
+
+#
+def GetSection(Sol):
+	EdgesSol=Sol.Shape.Edges
+	FacesSol=Sol.Shape.Faces
+	#~ Lengths=[]
+	#~ for edge in Edges:
+		#~ Lengths.append(edge.Length)
+	#---------------
+	#Recherche de l'arrête la plus longue
+	HighLength=0.0
+	No=0
+	n=0
+	for edge in EdgesSol:
+		if edge.Length>HighLength:
+			HighLength=edge.Length
+			No=n
+		n=n+1
+	#---------------
+	#Recherche de toutes les arrêtes parallèles à la plus longue
+	ParallelEdges=[]
+	n=0
+	VB=(EdgesSol[No].Curve.EndPoint -EdgesSol[No].Curve.StartPoint).normalize()
+	for edge in EdgesSol:
+		if edge.curvatureAt(0)==0.0:
+			VA = (edge.Curve.EndPoint - edge.Curve.StartPoint).normalize()
+			if abs((VA.cross(VB)).Length) <= tolerance:
+				ParallelEdges.append(n)
+				#~ Part.show(EdgesSol[n])
+		n=n+1	
+	#~ LongiFaces=[]
+	#~ n=0
+	#~ for face in FacesSol:
+		#~ e=0
+		#~ for edge in face.Edges:
+			#~ if edge.curvatureAt(0)==0.0:
+				#~ for pe in ParallelEdges:
+					#~ if abs(EdgesSol[pe].Curve.StartPoint.x-edge.Curve.StartPoint.x)<=tolerance \
+						#~ and abs(EdgesSol[pe].Curve.StartPoint.y-edge.Curve.StartPoint.y)<=tolerance \
+							#~ and abs(EdgesSol[pe].Curve.StartPoint.z-edge.Curve.StartPoint.z)<=tolerance \
+								#~ and abs(EdgesSol[pe].Curve.EndPoint.x-edge.Curve.EndPoint.x)<=tolerance \
+									#~ and abs(EdgesSol[pe].Curve.EndPoint.y-edge.Curve.EndPoint.y)<=tolerance \
+										#~ and abs(EdgesSol[pe].Curve.EndPoint.z-edge.Curve.EndPoint.z)<=tolerance :
+											#~ and abs(EdgesSol[pe].curvatureAt(0)-edge.curvatureAt(0))<=tolerance \
+												#~ and abs(EdgesSol[pe].curvatureAt(1)-edge.curvatureAt(1))<=tolerance :
+													#~ e=e+1
+													#~ Part.show(EdgesSol[pe])
+		#~ if e>=2:
+			#~ LongiFaces.append(n)
+			#~ Part.show(FacesSol[n])
+		#~ n=n+1
+	#---------------
+	#Recherche des deux faces d'extrémitées
+	ExtremFaces=[]
+	VertexesHighEdge=EdgesSol[No].Vertexes
+	n=0
+	for face in FacesSol:
+		nb=0
+		for vertexe in VertexesHighEdge:
+			if abs(vertexe.distToShape(face)[0])<=tolerance:
+				nb=nb+1
+		if nb==1:			
+			ExtremFaces.append(n)
+			#~ Part.show(FacesSol[n])
+		n=n+1
+	#---------------
+	#Recherche de l'arrête la plus courte aboutissant sur une face d'extrémité
+	LowLength=[HighLength,0]
+	n=0
+	for edge in ParallelEdges:
+		for vertexe in EdgesSol[edge].Vertexes:
+			if abs(vertexe.distToShape(FacesSol[ExtremFaces[0]])[0])<=tolerance:
+				if EdgesSol[edge].Length <= LowLength[0]:
+					LowLength[0]=EdgesSol[edge].Length
+					LowLength[1]=n
+		n=n+1
+	#~ Part.show(EdgesSol[ParallelEdges[LowLength[1]]])
+	
+	#---------------
+	#Création d'un plan normal à la courbe précédement trouvée puis section en testant qu'il n'y a qu'une face.
+	#si + de 1 face : présence de trous. Pas de test pour savoir si présence d'un usiange non traversant dans la
+	#section.... reste à chercher (piste : toutes les faces coupé doivent donné un résultat unique...)
+	#Encore une fois fortement inspiré de la macro WorkFeature
+	
+	LowEdge=EdgesSol[ParallelEdges[LowLength[1]]]
+	V1=centerLinePoint(LowEdge,0)
+	#~ Part.show(LowEdge)
+	
+	Vector_A = LowEdge.valueAt( 0.0 )
+	Vector_B = LowEdge.valueAt( LowEdge.Length )
+	Vector_C = V1
+	
+	Plane_Normal = Vector_B - Vector_A
+    
+	Vector_T=Vector_C
+    
+	Plane_Point = Vector_T +  (Vector_C - Vector_T).multiply(0.5)
+			
+	Plane_face=Part.makePlane(HighLength,HighLength,Plane_Point, Plane_Normal )
+	Plane_Center = Plane_face.CenterOfMass
+	Plane_Translate =  Plane_Point - Plane_Center
+	Plane_face.translate( Plane_Translate )
+	#~ plane.Shape = Plane_face
+	#~ Part.show(Plane_face)
+
+	Section=Plane_face.common(Sol.Shape)
+	
+	print Section.Faces
+	if len(Section.Faces)==1:
+		TestBarre=True
+		
+	# Reste à implémanter le test de validation...
+	
+	return [Section,HighLength,TestBarre]
+	
+def TypeSection(Section):
+	
+	NbEdge=len(Section.Edges)
+	
+	NbWires=len(Section.Wires)
+	#si 2 profil fermé, si 1 profil ouvert
+	
+	NbDroite=0
+	for edge in Section.Edges:
+		if edge.curvatureAt(0.0)<tolerance:
+			NbDroite=NbDroite+1
+		
+	Type=[FamilleProfile(NbEdge,NbWires,NbDroite),Section]
+	print Type[0]
+	if Type[0]!= False:
+		if Type[0][4]==1:
+			Profil=Profil01(Type)	
+		if Type[0][4]==2:
+			Profil=Profil02(Type)	
+		if Type[0][4]==3:
+			Profil=Profil03(Type)	
+		if Type[0][4]==4:
+			Profil=Profil04(Type)	
+		if Type[0][4]==5:
+			Profil=Profil05(Type)	
+		if Type[0][4]==6:
+			Profil=Profil06(Type)	
+		if Type[0][4]==7:
+			Profil=Profil07(Type)	
+		if Type[0][4]==8:
+			Profil=Profil08(Type)	
+		if Type[0][4]==9:
+			Profil=Profil09(Type)	
+		if Type[0][4]==10:
+			Profil=Profil10(Type)	
+		if Type[0][4]==11:
+			Profil=Profil11(Type)	
+		if Type[0][4]==12:
+			Profil=Profil12(Type)	
+		if Type[0][4]==13:
+			Profil=Profil13(Type)	
+		
+		
+def Profil01(type):
+	
+	dimIPE=[]
+	
+	dimIPEA=[]
+	
+	dimHEA=[]
+	
+	dimHEB=[]
+	
+	dimHEM=[]
+	
+def Profil02(type):
+	
+	dimIPN=[]
+	dimIPN.append([80.0,42.0,3.9,5.9,3.9,2.3])
+	dimIPN.append([100.0,50.0,4.5,6.8,4.5,2.7])
+	dimIPN.append([120.0,58.0,5.1,7.7,5.1,3.1])
+	dimIPN.append([140.0,66.0,5.7,8.6,5.7,3.4])
+	dimIPN.append([160.0,74.0,6.3,9.5,6.3,3.8])
+	dimIPN.append([180.0,82.0,6.9,10.4,6.9,4.1])
+	dimIPN.append([200.0,90.0,7.5,11.3,7.5,4.5])
+	dimIPN.append([220.0,98.0,8.1,12.2,8.1,4.9])
+	dimIPN.append([240.0,106.0,8.7,13.1,8.7,5.2])
+	dimIPN.append([260.0,113.0,9.4,14.1,9.4,5.6])
+	dimIPN.append([280.0,119.0,10.1,15.2,10.1,6.1])
+	dimIPN.append([300.0,125.0,10.8,16.2,10.8,6.5])
+	dimIPN.append([320.0,131.0,11.5,17.3,11.5,6.9])
+	dimIPN.append([340.0,137.0,12.2,18.3,12.2,7.3])
+	dimIPN.append([360.0,143.0,13.0,19.5,13.0,7.8])
+	dimIPN.append([380.0,149.0,13.7,20.5,13.7,8.2])
+	dimIPN.append([400.0,155.0,14.4,21.6,14.4,8.6])
+	dimIPN.append([450.0,170.0,16.2,24.3,16.2,9.7])
+	dimIPN.append([500.0,185.0,18.0,27.0,18.0,10.8])
+	dimIPN.append([550.0,200.0,19.0,30.0,19.0,11.9])
+	dimIPN.append([600.0,215.0,21.6,32.4,21.6,13.0])
+
+	Section=type[1]
+	CDG=Section.Faces[0].CenterOfMass
+	
+	#Recherche de l'arrête la plus longue
+	LMax=0.0
+	NoMax=[]
+	n=0
+	for edge in Section.Faces:
+		if edge.Length>LMax:
+			LMax=edge.Length
+			NoMax.append(n)
+		n=n+1
+	#nombre d'arrête = Lmax doit être 2
+	n=0
+	for edge in Section.Faces:
+		if edge.Length-Lmax<=tolerance:
+			n=n+1
+	if n!=2:
+		"Problème : "
+	#Recherche des 2 arrêtes égales de longueur inférieure
+	LMed
+	NoMed=[]
+	n=0
+	for edge in Section.Faces:
+		if edge.Length<LMax and edge.Length>LMed:
+			LMed=edge.Length
+			NoMed.append(n)
+		n=n+1
+	
+	
+	
+	#~ return profil
+
+
+def Profil03(type):
+	
+	dimUPN=[]
+
+def Profil04(type):
+	
+	dimUPE=[]
+	
+def Profil05(type):
+	
+	dimCorniereEgaleAcier=[]
+	
+	dimCorniereInegaleAcier=[]
+	
+def Profil06(type):	
+	
+	dimPlat=[]
+	
+	dimCarre=[]
+	
+def Profil07(type):
+	
+	dimTe=[]
+
+def Profil08(type):
+	
+	dimRond=[]
+		
+def Profil09(type):
+	
+	dimTubeRond=[]	
+	
+def Profil10(type):
+	
+	dimTubeCarre=[]	
+	
+	dimTubeRectangle=[]	
+	
+def Profil11(type):
+	
+	dimLAlu=[]	
+
+def Profil12(type):
+	
+	dimUAlu=[]	
+	
+	dimTAlu=[]	
+
+def Profil13(type):
+	
+	dimTubeCarreAlu=[]	
+	
+	dimTubeRectangleAlu=[]	
+		
+def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites):
+	
+	Famille=[[16,1,12,"IPE IPEA HEA HEB HEM",1],\
+	[20,1,12,"IPN",2],\
+	[12,1,8,"UPN",3],\
+	[10,1,8,"UPE",4],\
+	[9,1,6,"Corniere Acier",5],\
+	[4,1,4,"Plat Carre",6],\
+	[14,1,6,"Te",7],\
+	[1,1,0,"Rond",8],\
+	[2,2,0,"Tube Rond",9],\
+	[16,2,8,"Tube Carre Rectangle acier",10],\
+	[6,1,6,"Profil L Alu",11],\
+	[8,1,8,"Profil U T Alu",12],\
+	[8,2,8,"Tube Carre Rectangle Alu",13]]
+	
+	TypeProfil=False
+	for f in Famille:
+		if f[0]==NbArretes and f[1]==ProfilOuvert and f[2]==NbArretesDroites:
+			TypeProfil=f
+					
+	return TypeProfil
+	
+	
+oldDocumentObjects=App.ActiveDocument.Objects
+	
+sel=FreeCADGui.Selection.getSelection()
+
+if sel:
+	Sections=[]
+	TypeSections=[]
+	for solide in sel:
+		Sections.append(GetSection(solide))
+	print Sections	
+	for section in Sections:
+		if section[2]==True:
+			TypeSections.append(TypeSection(section[0]))
+	print TypeSections
+	
+		
+else:
+	print "Sélectionner des pièces"		
+
+
