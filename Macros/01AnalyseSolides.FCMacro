@@ -223,7 +223,6 @@ def GetSection(Sol):
 
 	Section=Plane_face.common(Sol.Shape)
 	
-	print Section.Faces
 	if len(Section.Faces)==1:
 		TestBarre=True
 		
@@ -272,6 +271,8 @@ def TypeSection(Section):
 			Profil=Profil12(Type)	
 		if Type[0][4]==13:
 			Profil=Profil13(Type)	
+	
+	print Profil
 		
 		
 def Profil01(type):
@@ -316,33 +317,64 @@ def Profil02(type):
 	
 	#Recherche de l'arrête la plus longue
 	LMax=0.0
-	NoMax=[]
+	NoMax=0
 	n=0
-	for edge in Section.Faces:
+	for edge in Section.Faces[0].Edges:
 		if edge.Length>LMax:
 			LMax=edge.Length
-			NoMax.append(n)
+			NoMax=n
 		n=n+1
 	#nombre d'arrête = Lmax doit être 2
 	n=0
-	for edge in Section.Faces:
-		if edge.Length-Lmax<=tolerance:
+	for edge in Section.Faces[0].Edges:
+		if edge.Length-LMax<=tolerance:
 			n=n+1
 	if n!=2:
 		"Problème : "
 	#Recherche des 2 arrêtes égales de longueur inférieure
-	LMed
-	NoMed=[]
+	LMed=0.0
+	NoMed=0
 	n=0
-	for edge in Section.Faces:
+	for edge in Section.Faces[0].Edges:
 		if edge.Length<LMax and edge.Length>LMed:
 			LMed=edge.Length
-			NoMed.append(n)
+			NoMed=n
 		n=n+1
 	
+	C1=centerLinePoint(Section.Faces[0].Edges[NoMax],0)
+	C2=centerLinePoint(Section.Faces[0].Edges[NoMed],0)
+	d1=C1.sub(CDG)
+	d2=C2.sub(CDG)
+	l1=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
+	l2=math.sqrt((d2.x)**2+(d2.y)**2+(d2.z)**2)
+	if l2>l1:
+		L1=l2
+		L2=l1
+		NOMax=NoMed
+		NOMed=NoMax
+	else :
+		L1=l1
+		L2=l2
+		NOMax=NoMax
+		NOMed=NoMed
+	Ih=L1*2
+	Ib=Section.Faces[0].Edges[NOMax].Length
+	Ia=L2*2
+	
+	TypeIPN="Poutrelle IPN"
 	
 	
-	#~ return profil
+	for mes in dimIPN:
+		print "Ih : "+str(Ih)
+		print "Ih : "+str(mes[0])
+		print "Ib : "+str(Ib)
+		print "Ib : "+str(mes[1])
+		print Ia
+		print mes[2]
+		if Ih==mes[0] and Ib==mes[1] and Ia==mes[2]:
+			TypeIPN==TypeIPN+str(mes[0])
+	
+	return TypeIPN
 
 
 def Profil03(type):
