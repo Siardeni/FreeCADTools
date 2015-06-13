@@ -243,7 +243,7 @@ def TypeSection(Section):
 			NbDroite=NbDroite+1
 		
 	Type=[FamilleProfile(NbEdge,NbWires,NbDroite),Section]
-	print Type[0]
+	#~ print Type[0]
 	if Type[0]!= False:
 		if Type[0][4]==1:
 			Profil=Profil01(Type)	
@@ -272,7 +272,7 @@ def TypeSection(Section):
 		if Type[0][4]==13:
 			Profil=Profil13(Type)	
 	
-	print Profil
+	return Profil
 		
 		
 def Profil01(type):
@@ -361,19 +361,20 @@ def Profil02(type):
 	Ib=Section.Faces[0].Edges[NOMax].Length
 	Ia=L2*2
 	
-	TypeIPN="Poutrelle IPN"
+	TypeIPN="Poutrelle IPN "
 	
 	
 	for mes in dimIPN:
-		print "Ih : "+str(Ih)
-		print "Ih : "+str(mes[0])
-		print "Ib : "+str(Ib)
-		print "Ib : "+str(mes[1])
-		print Ia
-		print mes[2]
-		if Ih==mes[0] and Ib==mes[1] and Ia==mes[2]:
-			TypeIPN==TypeIPN+str(mes[0])
-	
+		#~ print "Ih : "+str(Ih)
+		#~ print "Ih : "+str(mes[0])
+		#~ print "Ib : "+str(Ib)
+		#~ print "Ib : "+str(mes[1])
+		#~ print "Ia : "+str(Ia)
+		#~ print "Ia : "+str(mes[2])
+		if abs(Ih-mes[0])<=tolerance and abs(Ib-mes[1])<=tolerance and abs(Ia-mes[2])<=tolerance:
+			#~ print "hell"
+			TypeIPN=	TypeIPN+str(int(mes[0]))
+	#~ print TypeIPN
 	return TypeIPN
 
 
@@ -454,7 +455,6 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites):
 					
 	return TypeProfil
 	
-	
 oldDocumentObjects=App.ActiveDocument.Objects
 	
 sel=FreeCADGui.Selection.getSelection()
@@ -464,11 +464,16 @@ if sel:
 	TypeSections=[]
 	for solide in sel:
 		Sections.append(GetSection(solide))
-	print Sections	
+	#~ print Sections	
 	for section in Sections:
 		if section[2]==True:
 			TypeSections.append(TypeSection(section[0]))
-	print TypeSections
+	#~ print TypeSections
+	#~ print Sections
+	n=0
+	for section in Sections:
+		print str(TypeSections[n])+" Longueur : "+str(section[1])+" mm"
+		n=n+1
 	
 		
 else:
