@@ -18,6 +18,12 @@ App=FreeCAD
 Gui=FreeCADGui
 
 
+
+
+#
+#	maths
+#
+
 def Arrondi(x,n):
 	if n==0:
 		val=1
@@ -1139,7 +1145,7 @@ def LectureFichier():
 	PiecesACouper=[]
 	BarresBrutes=[]
 	Chutes=[]
-	os.chdir('E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD')
+	os.chdir(Chemin.CheminEchange(1))
 	try:
 		obFichier = open('Coupes Barre.txt','r')
 	except:
@@ -1194,7 +1200,7 @@ class Calpinage1D:
 		obj.addProperty("App::PropertyDistance","EpTraitCoupe","Parametres","Epaisseur Trait de coupe").EpTraitCoupe=3.0
 		obj.addProperty("App::PropertyDistance","LongueurBarreBruteR","Parametres","Longueur Barre Brute").LongueurBarreBruteR=6000.0
 		obj.addProperty("App::PropertyEnumeration","LongueurBarreBrute","Parametres","Choix du tri de la liste des pieces")
-		obj.LongueurBarreBrute = ['6000','5410 (poteaux Fermod)','5800 (echelons Fermod)','6730 (echelons Fermod)','Longueur reglable']
+		obj.LongueurBarreBrute = ['6000','3000','2500','5410 (poteaux Fermod)','5800 (echelons Fermod)','6730 (echelons Fermod)','Longueur reglable']
 		obj.addProperty("App::PropertyEnumeration","PiecesACouper","Tri","Choix du tri de la liste des pieces")
 		obj.PiecesACouper = ['Croissant','Decroissant','Original']
 		obj.addProperty("App::PropertyFloatList","PiecesACouperCroissant","Parametres","Longueurs Pieces").PiecesACouperCroissant
@@ -1375,7 +1381,7 @@ class RapportCalpinage1D:
 			n=n+1
 		longByLine.append(Line)
 		#Ecriture fichier
-		os.chdir('E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD')
+		os.chdir(Chemin.CheminEchange(1))
 		obFichier = open('Rapport Calpinage Barres.txt','w')
 		obFichier.write("\n")
 		obFichier.write("Rapport Calpinage Barres :\n")
@@ -1476,7 +1482,7 @@ class RapportCalpinage1D:
 		
 def LectureFichierPoints3D():
 	ListePoints=[]
-	os.chdir('E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD')
+	os.chdir(Chemin.CheminEchange(1))
 	try:
 		obFichier = open('Points3D.txt','r')
 		for ligne in obFichier.readlines():
@@ -2012,7 +2018,7 @@ def planche(Obj,nameFile):
 	App.activeDocument().recompute()
 
 	PageFile = open(page.PageResult,'r')
-	OutFile = open('E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD'+nameFile+'.dxf','w')
+	OutFile = open(Chemin.CheminEchange(1)+nameFile+'.dxf','w')
 	OutFile.write(PageFile.read())
 	del OutFile,PageFile
 
