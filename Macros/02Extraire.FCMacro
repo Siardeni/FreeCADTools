@@ -1,0 +1,182 @@
+# -*- coding:Utf-8 -*-
+#############################################
+# Programme Python type                     #
+# Auteur : Nicolas Tuffereau, Angers, 2011  #
+# Licence : GPL                             #
+#############################################
+
+#####################################
+# Importation de fonctions externes :
+
+#from os import *
+import FreeCAD, FreeCADGui, Part, Draft, math, MeshPart, Mesh, Drawing
+import FreeCADTools
+from FreeCAD import Base
+App=FreeCAD
+Gui=FreeCADGui
+
+##################################
+# Défnition Class :
+
+def makeExtract(basesel=None,NoFace=None,NoEdge=None,NoVertex=None,name=None):
+	if NoFace!= None:
+		name="Extraction Face"
+	elif NoEdge!= None:
+		name="Extraction Edge"
+	elif NoVertex!= None:
+		name="Extraction Vertex"
+	obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython",name)
+	Extract(obj)
+	obj.Components=[basesel]
+	ViewProviderExtract(obj.ViewObject)
+	if NoFace!= None:
+		obj.NoFace = NoFace
+	elif NoEdge!= None:
+		obj.NoEdge = NoEdge
+	elif NoVertex!= None:
+		obj.NoVertex = NoVertex
+	for comp in obj.Components:
+		comp.ViewObject.hide()
+	return obj
+
+class Extract:
+	"The Extract object"
+	def __init__(self,obj):
+		obj.addProperty("App::PropertyLinkList","Components","Base","Les objets originaux")
+		obj.addProperty("App::PropertyInteger","NoFace","Base","Numero Face").NoFace=0
+		obj.addProperty("App::PropertyInteger","NoEdge","Base","Numero Edge").NoEdge=0
+		obj.addProperty("App::PropertyInteger","NoVertex","Base","Numero Vertex").NoVertex=0
+		obj.Proxy = self
+		self.Type = "Exraction"
+	def execute(self,obj):
+		self.createGeometry(obj)
+	def onChanged(self,obj,prop):
+		if prop in ["Base","NoFace","NoEdge","NoVertex"]:
+			self.createGeometry(obj)
+	def createGeometry(self,obj):
+		if obj.Components:
+			components = obj.Components[:]
+			base=components[0].Shape.copy()
+			# Part.show(base)
+			if obj.NoFace != 0:
+				if obj.NoFace <= 0:
+					print "Premiere Face"
+					obj.NoFace=1
+				elif obj.NoFace > len(base.Faces):
+					print "Derniere Face"
+					obj.NoFace=len(base.Faces)
+				base=base.Faces[obj.NoFace-1]
+				print "Surface : "+(str(float(int(base.Area*100))/100))+" mm2"
+			elif obj.NoEdge != 0:
+				if obj.NoEdge <= 0:
+					print "Premiere Arrête"
+					obj.NoEdge=1
+				elif obj.NoEdge > len(base.Edges):
+					print "Derniere Arrête"
+					obj.NoEdge=len(base.Edges)
+				base=base.Edges[obj.NoEdge-1]
+				print "Longueur arrête : "+(str(float(int(base.Length*100))/100))+" mm"
+			elif obj.NoVertex != 0:
+				if obj.NoVertex <= 0:
+					print "Premier Point"
+					obj.NoVertex=1
+				elif obj.NoVertex > len(base.Vertexes):
+					print "Dernier Point"
+					obj.NoVertex=len(base.Vertexes)
+				base=base.Vertexes[obj.NoVertex-1]
+				print str(base.X)+";"+str(base.Y)+";"+str(base.Z)
+				#~ print bas
+			obj.Shape = base
+       
+class ViewProviderExtract:
+	"A View Provider for the Wall object"
+	def __init__(self,vobj):
+		vobj.Proxy = self
+		self.Object = vobj.Object
+	def getIcon(self):
+		return """
+			/* XPM */
+			static char * Extraction Elements_xpm[] = {
+			"16 16 9 1",
+			" 	c None",
+			".	c #047503",
+			"+	c #009E0E",
+			"@	c #338498",
+			"#	c #4D8D6A",
+			"$	c #0ABC00",
+			"%	c #46A65C",
+			"&	c #6A9AA5",
+			"*	c #46ADC9",
+			"                ",
+			"                ",
+			"                ",
+			"    &&&&&&      ",
+			"  @@&&***&&&#.  ",
+			"  ****@&#%+$$$  ",
+			"  *****&%$$$$$  ",
+			"  *****&%$$$$$  ",
+			"  *****&%$$$$$  ",
+			"  *****&%$$$$$  ",
+			"  *****&%$$$$$  ",
+			"  *****&%$$$$$  ",
+			"    @@@&%$++.   ",
+			"                ",
+			"                ",
+			"                "};
+		"""
+	def updateData(self,obj,prop):
+		return
+
+	def onChanged(self,vobj,prop):
+		return
+
+	def claimChildren(self):
+		return self.Object.Components
+
+	def attach(self,vobj):
+		self.Object = vobj.Object
+		return
+
+	def getDisplayModes(self,obj):
+		modes=[]
+		return modes
+
+	def setDisplayMode(self,mode):
+		return mode
+
+	def __getstate__(self):
+		return None
+
+	def __setstate__(self,state):
+		return None 
+
+	def claimChildren(self):
+		return self.Object.Components
+
+	def attach(self,vobj):
+		self.Object = vobj.Object
+		return
+
+sel=Gui.Selection.getSelectionEx()
+if sel:
+	FreeCAD.ActiveDocument.openTransaction("Extraction")
+	for elts in sel:
+		obj=elts.Object
+		subname=elts.SubElementNames[:]
+		for name in subname:
+			noFace = 0
+			noEdge = 0
+			noVertex = 0
+			if name[0:4]=="Face":
+				noFace=int(name[4:7])
+				makeExtract(obj,noFace,None,None)
+			elif name[0:4]=="Edge":
+				noEdge=int(name[4:7])
+				makeExtract(obj,None,noEdge,None)
+			elif name[0:6]=="Vertex":
+				noVertex=int(name[6:9])
+				makeExtract(obj,None,None,noVertex)
+			# print "noFace : ",noFace
+			# print "noEdge : ",noEdge
+			# print "noVertex : ",noVertex
+	FreeCAD.ActiveDocument.commitTransaction()
