@@ -748,6 +748,7 @@ def ParamIouH(FaceSection):
 			LMax=edge.Length
 			NoMax=n
 		n=n+1
+	Part.show(Section.Faces[0].Edges[NoMax])
 	#nombre d'arrête = Lmax doit être 2
 	n=0
 	for edge in Section.Faces[0].Edges:
@@ -761,17 +762,18 @@ def ParamIouH(FaceSection):
 	NoMed=0
 	n=0
 	for edge in Section.Faces[0].Edges:
-		if edge.Length<LMax and edge.Length>LMed:
+		if edge.Length-LMax>tolerance and edge.Length>LMed:
 			LMed=edge.Length
 			NoMed=n
 		n=n+1
-	
 	C1=centerLinePoint(Section.Faces[0].Edges[NoMax],0)
 	C2=centerLinePoint(Section.Faces[0].Edges[NoMed],0)
 	d1=C1.sub(CDG)
 	d2=C2.sub(CDG)
 	l1=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
 	l2=math.sqrt((d2.x)**2+(d2.y)**2+(d2.z)**2)
+	print l1
+	print l2
 	if l2>l1:
 		L1=l2
 		L2=l1
@@ -784,9 +786,10 @@ def ParamIouH(FaceSection):
 		NOMed=NoMed
 	Ih=L1*2
 	Ib=Section.Faces[0].Edges[NOMax].Length
-	Ia=L2*2
+	Itw=L2*2
 	
-	return [Ih,Ib,Ia]
+	
+	return [Ih,Ib,Itw]
 	
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
@@ -892,7 +895,7 @@ def GetSection(Sol):
 	#~ Part.show(Plane_face)
 
 	Section=Plane_face.common(Sol.Shape)
-	
+	#~ Part.show(Section)
 	if len(Section.Faces)==1:
 		TestBarre=True
 		
@@ -913,41 +916,64 @@ def TypeSection(Section):
 			NbDroite=NbDroite+1
 		
 	Type=[FamilleProfile(NbEdge,NbWires,NbDroite),Section]
-	Profil=0
 	if Type[0]!= False:
 		if Type[0][4]==1:
 			Profil=Profil01(Type)	
-		if Type[0][4]==2:
+		elif Type[0][4]==2:
 			Profil=Profil02(Type)	
-		if Type[0][4]==3:
+		elif Type[0][4]==3:
 			Profil=Profil03(Type)	
-		if Type[0][4]==4:
+		elif Type[0][4]==4:
 			Profil=Profil04(Type)	
-		if Type[0][4]==5:
+		elif Type[0][4]==5:
 			Profil=Profil05(Type)	
-		if Type[0][4]==6:
+		elif Type[0][4]==6:
 			Profil=Profil06(Type)	
-		if Type[0][4]==7:
+		elif Type[0][4]==7:
 			Profil=Profil07(Type)	
-		if Type[0][4]==8:
+		elif Type[0][4]==8:
 			Profil=Profil08(Type)	
-		if Type[0][4]==9:
+		elif Type[0][4]==9:
 			Profil=Profil09(Type)	
-		if Type[0][4]==10:
+		elif Type[0][4]==10:
 			Profil=Profil10(Type)	
-		if Type[0][4]==11:
+		elif Type[0][4]==11:
 			Profil=Profil11(Type)	
-		if Type[0][4]==12:
+		elif Type[0][4]==12:
 			Profil=Profil12(Type)	
-		if Type[0][4]==13:
+		elif Type[0][4]==13:
 			Profil=Profil13(Type)	
-		
+	else:
+		Profil=0
 	return Profil
 		
 def Profil01(type):
 	
 	profIPE=ProfIPE()
 	profHE=ProfHE()
+	
+	Param=ParamIouH(type)
+	
+	for mes in profIPE:
+		if abs(Param[0]-mes[2])<=tolerance and abs(Param[1]-mes[3])<=tolerance and abs(Param[2]-mes[4])<=tolerance:
+			TypeIPE=str(mes[0])
+		else :
+			TypeIPE=0
+	
+	for mes in profHE:
+		if abs(Param[0]-mes[2])<=tolerance and abs(Param[1]-mes[3])<=tolerance and abs(Param[2]-mes[4])<=tolerance:
+			TypeHE=str(mes[0])
+		else :
+			TypeHE=0
+	
+	if TypeIPE!=0:
+		TypeIPEouHE="Poutrelle "+str(TypeIPE)
+	elif TypeHE!=0:
+		TypeIPEouHE="Poutrelle "+str(TypeHE)
+	else :
+		TypeIPEouHE="Pas de corespondance trouvée (h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])
+	
+	return TypeIPEouHE
 	
 def Profil02(type):
 	
@@ -958,8 +984,9 @@ def Profil02(type):
 	TypeIPN="Poutrelle IPN "
 	
 	for mes in profIPN:
-		if abs(Param[1]-mes[0])<=tolerance and abs(Param[2]-mes[1])<=tolerance and abs(Param[3]-mes[2])<=tolerance:
+		if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[3])<=tolerance:
 			TypeIPN=TypeIPN+str(int(mes[0]))
+	
 	return TypeIPN
 
 def Profil03(type):
@@ -1066,7 +1093,7 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites):
 	[10,1,8,"UPE",4],\
 	[9,1,6,"Corniere Acier",5],\
 	[4,1,4,"Plat Carre",6],\
-	[14,1,6,"Te",7],\
+	[14,1,8,"Te",7],\
 	[1,1,0,"Rond",8],\
 	[2,2,0,"Tube Rond",9],\
 	[16,2,8,"Tube Carre Rectangle acier",10],\
@@ -1084,7 +1111,7 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites):
 	for f in Famille:
 		if f[0]==NbArretes and f[1]==ProfilOuvert and f[2]==NbArretesDroites:
 			TypeProfil=f
-					
+	print TypeProfil				
 	return TypeProfil
 	
 oldDocumentObjects=App.ActiveDocument.Objects
@@ -1107,8 +1134,9 @@ if sel:
 		if TypeSections[n]==0:
 			print "problème"
 		else :
-			print str(TypeSections[n])+" Longueur : "+str(section[1])+" mm"
-			n=n+1
+			print str(TypeSections[n])
+			print "Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
+		n=n+1
 	
 		
 else:
