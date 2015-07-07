@@ -773,7 +773,6 @@ class Extract:
 					obj.NoFace=len(base.Faces)
 				print base
 				base=base.Faces[obj.NoFace-1]
-				print base
 			elif obj.NoEdge != 0:
 				if obj.NoEdge <= 0:
 					print "Premiere Arrête"
@@ -2116,9 +2115,11 @@ class MExtract:
 					if name[0:4]=="Face":
 						noFace=int(name[4:7])
 						makeExtract(obj,noFace,None,None)
+						print "Surface : "+(str(float(int(obj.Shape.Area*100+0.49))/100))+" mm2"
 					elif name[0:4]=="Edge":
 						noEdge=int(name[4:7])
 						makeExtract(obj,None,noEdge,None)
+						print "Longueur arrête : "+(str(float(int(base.Shape.Length*100+0.49))/100))+" mm"
 					elif name[0:6]=="Vertex":
 						noVertex=int(name[6:9])
 						makeExtract(obj,None,None,noVertex)
