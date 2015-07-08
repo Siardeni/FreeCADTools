@@ -7,15 +7,16 @@
 
 
 # Reste à faire 
-# Prendre en compte Cornièrer acier au-dela de 200x200 géométrie section différente
-
-
-# Identifier tube cintrés
+#
+#--------------------
+# Cornière profilé à froids
+# Tracer la fibre neutre
+# Calculer poids et comparer au poid catalogue
 # Platine
 # Tôles pliées
-
-
-
+# Prendre en compte Cornièrer acier au-dela de 200x200 géométrie section différente
+# Identifier tube cintrés
+#--------------------
 
 
 #####################################
@@ -36,6 +37,28 @@ def comp(v1, v2):
         return 1
     else:
         return 0
+        
+def compinv(v1, v2):
+    if v1[1]<v2[1]:
+        return -1
+    elif v1[1]<v2[1]:
+        return 1
+    else:
+        return 0
+
+def Ln(Edges):
+	
+	Ln=[]
+	L=0
+	n=0
+	for edge in Edges:
+		L=edge.Length
+		Ln.append([n,L])
+		n=n+1
+	
+	Ln.sort(cmp=comp)
+	
+	return Ln
 
 #Copie Macro WorkFeature
 
@@ -623,15 +646,32 @@ def ProfCorniereInegaleAcier():
 	dimCorniereInegaleAcier.append([31.6,200,100,14,15,7.5,40.3,7.12,2.18,13.01,8.86,3.91,5.85,2.24,"M27",55,151,36.1,"M24",50,57,37.2,0.587,18.57,1654,128.4,6.41,282.2,36.08,2.65,1755,6.6,181.7,2.12,-384.8,14.65])
 	dimCorniereInegaleAcier.append([33.7,200,100,15,15,7.5,43,7.16,2.22,12.98,8.89,3.95,5.84,2.27,"M27",56,151,38.5,"M24",50,57,39.9,0.587,17.4,1758,137,6.4,299.1,38.44,2.64,1865,6.59,193.1,2.12,-407.4,14.59])
 	dimCorniereInegaleAcier.append([35.9,200,100,16,15,7.5,45.7,7.2,2.26,12.95,8.92,3.99,5.82,2.31,"M27",58,151,40.9,"M24",51,57,42.6,0.587,16.37,1861,145.4,6.38,315.6,40.76,2.63,1972,6.57,204.3,211,-429.3,14.53])
-	
+	dimCorniereInegaleAcier.append([1.12,30,20,3,4,2,1.43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([1.43,35,20,3.5,4,2,1.82,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([1.73,40,20,3,4,2,1.36,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([2.46,40,25,4,4,2,1.93,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([2.24,45,30,4,4,2,2.86,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([2.76,45,30,5,4,2,3.52,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([2.96,50,30,5,5,2.5,3.78,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([3.76,60,40,5,6,3,4.79,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([4.46,60,40,6,6,3,5.68,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([5.14,60,40,7,6,3,6.55,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([5.4,70,50,6,6,3,6.88,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([7.36,80,60,7,8,4,9.38,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([9.6,90,70,8,8,4,12.23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([8.99,100,50,8,9,4.5,11.4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([11.79,100,75,9,10,5,15.03,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([15,120,80,10,11,5.5,19.1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([19.9,150,90,11,12,6,25.3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	dimCorniereInegaleAcier.append([31.6,200,100,14,15,7.5,40.28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+
 	return dimCorniereInegaleAcier
 		
 def ProfPlat():
 	
 	dimPlat=[]
-
-	#,Première ligne épaisseur
-	#,Ensuite largeurs
+	#,Première ligne épaisseur,,,,,,,,,,,,,,,,,,,,
+	#,Ensuite largeurs,,,,,,,,,,,,,,,,,,,,
 	dimPlat.append([0,4,5,6,7,8,10,12,14,15,16,18,20,25,30,35,40,45,50,60])
 	dimPlat.append([20,0.628,0.785,0.942,1.10,1.26,1.57,1.88,2.20,2.36,0,0,0,0,0,0,0,0,0,0])
 	dimPlat.append([25,0.785,0.981,1.18,1.37,1.57,1.96,2.36,2.75,2.94,3.14,3.53,0,0,0,0,0,0,0,0])
@@ -650,44 +690,49 @@ def ProfPlat():
 	dimPlat.append([100,0,3.93,4.71,5.50,6.28,7.85,9.42,11.0,11.8,12.6,14.1,15.7,19.6,23.6,27.5,31.4,35.3,0,0])
 	dimPlat.append([110,0,4.32,5.18,6.04,6.91,8.64,10.4,12.1,13,13.8,15.5,17.3,21.6,25.9,30.2,34.5,0,0,0])
 	dimPlat.append([120,0,4.71,5.65,6.59,7.54,9.42,11.3,13.2,14.1,15.1,17.0,18.8,23.6,28.3,0,0,0,0,0])
-	dimPlat.append([130,0,0,0,0,8.16,10.2,12.3,14.3,15.3,16.3,18.4,20.4,25.5,30.6,35.7,40.8,45.9,51,62.2])
-	dimPlat.append([140,0,0,0,0,8.79,11,13.2,15.4,16.5,17.6,19.8,22,27.5,33,38.5,44,49.5,55,65.9])
-	dimPlat.append([150,0,0,0,0,9.42,11.8,14.1,16.5,17.7,18.8,21.2,23.6,29.4,35.3,41.2,47.1,53,58.9,70.7])
-	dimPlat.append([160,0,0,0,0,10.1,12.6,15.1,17.6,18.8,20.1,22.6,25.1,31.4,37.7,44,50.2,56.5,62.8,75.4])
+	dimPlat.append([130,0,0,0,6.12,8.16,10.2,12.3,14.3,15.3,16.3,18.4,20.4,25.5,30.6,35.7,40.8,45.9,51,62.2])
+	dimPlat.append([140,0,0,5.49,6.6,8.79,11,13.2,15.4,16.5,17.6,19.8,22,27.5,33,38.5,44,49.5,55,65.9])
+	dimPlat.append([150,0,0,0,7.07,9.42,11.8,14.1,16.5,17.7,18.8,21.2,23.6,29.4,35.3,41.2,47.1,53,58.9,70.7])
+	dimPlat.append([160,0,0,0,7.53,10.1,12.6,15.1,17.6,18.8,20.1,22.6,25.1,31.4,37.7,44,50.2,56.5,62.8,75.4])
 	dimPlat.append([170,0,0,0,0,10.7,13.3,16,18.7,20,21.4,24,26.7,33.4,40,46.7,53.4,60.1,66.7,80.1])
-	dimPlat.append([180,0,0,0,0,11.3,14.1,17,19.8,21.2,22.6,25.4,28.3,35.3,0,0,0,0,0,0])
-	dimPlat.append([200,0,0,0,0,12.6,15.7,18.8,22,23.6,25.1,28.3,31.4,39.3,47.1,55,62.8,0,0,0])
-	
+	dimPlat.append([180,0,0,0,8.47,11.3,14.1,17,19.8,21.2,22.6,25.4,28.3,35.3,0,0,0,0,0,0])
+	dimPlat.append([200,0,0,0,9.42,12.6,15.7,18.8,22,23.6,25.1,28.3,31.4,39.3,47.1,55,62.8,0,0,0])
+	dimPlat.append([220,0,0,0,10.35,0,13.81,17.27,20.7,0,25.9,0,0,35.54,0,0,0,0,0,0])
+	dimPlat.append([250,0,0,0,11.77,0,15.7,19.62,23.55,0,29.43,0,0,39.25,49.1,58.86,0,0,0,0])
+	dimPlat.append([300,0,0,0,14.13,0,18.84,23.55,28.26,0,35.32,0,0,47.1,58.9,70.65,0,0,0,0])
+	dimPlat.append([350,0,0,0,0,0,0,27.47,0,0,41.2,0,0,54.94,68.7,82.4,0,0,0,0])
+	dimPlat.append([400,0,0,0,0,0,25.12,31.4,0,0,47.1,0,0,0,78.5,94.2,0,0,0,0])
+
 	return dimPlat
 
 def ProfCarre():
 	
 	dimCarre=[]
-	#,Ø,,Section,
+	#,,,Section,
 	#,d,Poids,A,
-	#,(mm)	(Kg/m)	cm²	
-	dimCarre.append([6,0,28,0,36])
-	dimCarre.append([8,0,5,0,64])
-	dimCarre.append([10,0,78,1])
-	dimCarre.append([12,1,13,1,44])
-	dimCarre.append([14,1,54,1,96])
-	dimCarre.append([16,2,2,56])
-	dimCarre.append([18,2,54,3,24])
-	dimCarre.append([20,3,14,4])
-	dimCarre.append([22,3,8,4,84])
-	dimCarre.append([25,4,91,6,25])
-	dimCarre.append([30,7,06,9])
-	dimCarre.append([35,9,62,12,25])
-	dimCarre.append([40,12,56,16])
-	dimCarre.append([45,15,9,20,25])
-	dimCarre.append([50,19,62,25])
-	dimCarre.append([60,28,26,36])
-	dimCarre.append([70,38,47,49])
-	dimCarre.append([80,50,24,64])
-	dimCarre.append([90,63,59,81])
-	dimCarre.append([100,78,5,100])
-	dimCarre.append([120,113,04,144])
-	dimCarre.append([130,132,6,0])
+	#,(mm),(Kg/m),cm²,
+	dimCarre.append([6,0.28,0.36])
+	dimCarre.append([8,0.5,0.64])
+	dimCarre.append([10,0.78,1])
+	dimCarre.append([12,1.13,1.44])
+	dimCarre.append([14,1.54,1.96])
+	dimCarre.append([16,2,2.56])
+	dimCarre.append([18,2.54,3.24])
+	dimCarre.append([20,3.14,4])
+	dimCarre.append([22,3.8,4.84])
+	dimCarre.append([25,4.91,6.25])
+	dimCarre.append([30,7.06,9])
+	dimCarre.append([35,9.62,12.25])
+	dimCarre.append([40,12.56,16])
+	dimCarre.append([45,15.9,20.25])
+	dimCarre.append([50,19.62,25])
+	dimCarre.append([60,28.26,36])
+	dimCarre.append([70,38.47,49])
+	dimCarre.append([80,50.24,64])
+	dimCarre.append([90,63.59,81])
+	dimCarre.append([100,78.5,100])
+	dimCarre.append([120,113.04,144])
+	dimCarre.append([130,132.6,0])
 	
 	return dimCarre
 
@@ -708,6 +753,9 @@ def ProfTe():
 	dimTe.append([70,70,8,8,8,4,2,8.32,10.6,0.28,32.2])
 	dimTe.append([80,80,9,9,9,4.5,2,10.7,13.6,0.32,28.7])
 	dimTe.append([100,100,11,11,11,5.5,3,16.4,20.9,0.4,23.4])
+	dimTe.append([30,35,4,4,4,2,1,1.94,2.48,0.13,67])
+	dimTe.append([35,40,4.5,4.5,4,2,1,2.49,3.18,0.15,60.4])
+	dimTe.append([40,45,5,5,5,2.5,1.5,3.14,4.01,0.17,54.1])
 	
 	return dimTe
 
@@ -785,6 +833,7 @@ def ProfRond():
 	dimRond.append([74.6,110,95])
 	
 	return dimRond
+
 	
 #
 #	Recherche caractéristique sections
@@ -796,79 +845,75 @@ def ParamIouH(FaceSection):
 	
 	CDG=Section.Faces[0].CenterOfMass
 	
-	#Recherche de l'arrête la plus longue
-	LMax=0.0
-	NoMax=0
-	n=0
-	for edge in Section.Faces[0].Edges:
-		if edge.Length>LMax:
-			LMax=edge.Length
-			NoMax=n
-		n=n+1
-	#~ Part.show(Section.Faces[0].Edges[NoMax])
-	#nombre d'arrête = Lmax doit être 2
-	n=0
-	for edge in Section.Faces[0].Edges:
-		if edge.Length-LMax<=tolerance:
-			n=n+1
-	if n!=2:
-		"Problème : "
+	ln=Ln(Section.Faces[0].Edges)
 		
-	#Recherche des 2 arrêtes égales de longueur inférieure
-	LMed=0.0
-	NoMed=0
-	n=0
-	for edge in Section.Faces[0].Edges:
-		if edge.Length-LMax>tolerance and edge.Length>LMed:
-			LMed=edge.Length
-			NoMed=n
-		n=n+1
-	C1=centerLinePoint(Section.Faces[0].Edges[NoMax],0)
-	C2=centerLinePoint(Section.Faces[0].Edges[NoMed],0)
+	#~ #Recherche de l'arrête la plus longue
+	#~ LMax=0.0
+	#~ NoMax=0
+	#~ n=0
+	#~ for edge in Section.Faces[0].Edges:
+		#~ if edge.Length>LMax:
+			#~ LMax=edge.Length
+			#~ NoMax=n
+		#~ n=n+1
+	#~ Part.show(Section.Faces[0].Edges[NoMax])
+	#~ #nombre d'arrête = Lmax doit être 2
+	#~ n=0
+	#~ for edge in Section.Faces[0].Edges:
+		#~ if edge.Length-LMax<=tolerance:
+			#~ n=n+1
+	#~ if n!=2:
+		#~ "Problème : "
+		#~ 
+	#~ #Recherche des 2 arrêtes égales de longueur inférieure
+	#~ LMed=0.0
+	#~ NoMed=0
+	#~ n=0
+	#~ for edge in Section.Faces[0].Edges:
+		#~ if edge.Length-LMax>tolerance and edge.Length>LMed:
+			#~ LMed=edge.Length
+			#~ NoMed=n
+		#~ n=n+1
+	
+	edge1=Section.Faces[0].Edges[ln[0][0]]
+	edge2=Section.Faces[0].Edges[ln[2][0]]
+	#~ Part.show(edge1)
+	#~ Part.show(edge2)
+			
+	C1=centerLinePoint(edge1,0)
+	C2=centerLinePoint(edge2,0)
 	d1=C1.sub(CDG)
 	d2=C2.sub(CDG)
 	l1=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
 	l2=math.sqrt((d2.x)**2+(d2.y)**2+(d2.z)**2)
-	print l1
-	print l2
-	if l2>l1:
-		L1=l2
-		L2=l1
-		NOMax=NoMed
-		NOMed=NoMax
+	#~ print l1
+	#~ print l2
+	if l1>l2:
+		h=l1*2
+		b=edge1.Length
+		tw=l2*2
 	else :
-		L1=l1
-		L2=l2
-		NOMax=NoMax
-		NOMed=NoMed
-	Ih=L1*2
-	Ib=Section.Faces[0].Edges[NOMax].Length
-	Itw=L2*2
-	return [Ih,Ib,Itw]
+		h=l2*2
+		b=edge2.Length
+		tw=l1*2
+		
+	return [h,b,tw]
 
 def ParamCorniereAcier(FaceSection):
 	
 	Section=FaceSection[1]
 	
-	Ln=[]
-	L=0
-	n=0
-	for edge in Section.Faces[0].Edges:
-		L=edge.Length
-		Ln.append([n,L])
-		n=n+1
-	
-	Ln.sort(cmp=comp)
+	ln=Ln(Section.Faces[0].Edges)
+			
+	edge0=Section.Faces[0].Edges[ln[0][0]]
+	edge2=Section.Faces[0].Edges[ln[2][0]]
+	edge3=Section.Faces[0].Edges[ln[3][0]]
 		
-	edge0=Section.Faces[0].Edges[Ln[0][0]]
-	edge2=Section.Faces[0].Edges[Ln[2][0]]
-	edge3=Section.Faces[0].Edges[Ln[3][0]]
-		
-	if Ln[0][1]-Ln[1][1]<tolerance:
+	if ln[0][1]-ln[1][1]<tolerance:
 		L1=edge0.Length
 		L2=L1
 	else:
-		edge1=Section.Faces[0].Edges[Ln[0],[0]]
+		edge1=Section.Faces[0].Edges[ln[1][0]]
 		L1=edge0.Length
 		L2=edge1.Length
 	
@@ -893,9 +938,81 @@ def ParamCorniereAcier(FaceSection):
 			
 	return L1,L2,Ep
 	
-	#~ intersecPerpendicularLine()
+
+def ParamPlatCarre(FaceSection):
 	
+	Section=FaceSection[1]
 	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	edge0=Section.Faces[0].Edges[ln[0][0]]
+	edge2=Section.Faces[0].Edges[ln[2][0]]
+	
+	CDG=Section.Faces[0].CenterOfMass
+	
+	L1=edge0.Length
+	L2=edge2.Length
+	
+	if L1==L2:
+		Type="Carré"
+		
+	if L1>L2:
+		Type="Rectangle"
+	else:
+		t1=L2
+		t2=L1
+		L1=t1
+		L2=t2
+		
+	return L1,L2,Type
+		
+def ParamTe(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	lninv=ln[:]
+	lninv.sort(cmp=compinv)
+		
+	edge0=Section.Faces[0].Edges[ln[0][0]]
+	edge1=Section.Faces[0].Edges[ln[1][0]]
+	edge2=Section.Faces[0].Edges[ln[2][0]]
+	
+	edgePlusPetite=Section.Faces[0].Edges[lninv[0][0]]
+	
+	CDG=Section.Faces[0].CenterOfMass
+	
+	L0=edge0.Length
+	L1=edge1.Length
+	L2=edge2.Length
+	b=0
+	h=0
+	
+	if abs(L1-L2)<=tolerance:
+		b=L0
+		C1=centerLinePoint(edge0,0)
+		C2=centerLinePoint(edgePlusPetite,0)
+		d1=C1.sub(C2)
+		h=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
+	
+	if abs(L0-L1)<=tolerance:
+		b=L2
+		C1=centerLinePoint(edge2,0)
+		C2=centerLinePoint(edgePlusPetite,0)
+		d1=C1.sub(C2)
+		h=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
+		
+	return b,h
+
+def ParamRond(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	edge=Section.Faces[0].Edges[0]
+	
+	d=edge.Length/(2*math.pi)	
+	
+	return d
 
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
@@ -1024,64 +1141,63 @@ def TypeSection(Section):
 	Type=[FamilleProfile(NbEdge,NbWires,NbDroite),Section]
 	if Type[0]!= False:
 		if Type[0][4]==1:
-			Profil=Profil01(Type)	
+			Profil=ProfilIPEouHE(Type)	
 		elif Type[0][4]==2:
-			Profil=Profil02(Type)	
+			Profil=ProfilIPN(Type)	
 		elif Type[0][4]==3:
-			Profil=Profil03(Type)	
+			Profil=ProfilUPN(Type)	
 		elif Type[0][4]==4:
-			Profil=Profil04(Type)	
+			Profil=ProfilUPE(Type)	
 		elif Type[0][4]==5:
-			Profil=Profil05(Type)	
+			Profil=ProfilCorniere(Type)	
 		elif Type[0][4]==6:
-			Profil=Profil06(Type)	
+			Profil=ProfilPlatCarre(Type)	
 		elif Type[0][4]==7:
-			Profil=Profil07(Type)	
+			Profil=ProfilTe(Type)	
 		elif Type[0][4]==8:
-			Profil=Profil08(Type)	
+			Profil=ProfilRond(Type)	
 		elif Type[0][4]==9:
-			Profil=Profil09(Type)	
+			Profil=ProfilTubeRond(Type)	
 		elif Type[0][4]==10:
-			Profil=Profil10(Type)	
+			Profil=ProfilTubeCarreRectangle(Type)	
 		elif Type[0][4]==11:
 			Profil=Profil11(Type)	
 		elif Type[0][4]==12:
-			Profil=Profil12(Type)	
+			Profil=ProfilTouLAlu(Type)	
 		elif Type[0][4]==13:
-			Profil=Profil13(Type)	
+			Profil=ProfilTubeCarreRectangleAlu(Type)	
 	else:
 		Profil=0
 	return Profil
 		
-def Profil01(type):
+def ProfilIPEouHE(type):
 	
 	profIPE=ProfIPE()
 	profHE=ProfHE()
 	
 	Param=ParamIouH(type)
 	
+	TypeIPE=0
+	TypeHE=0
+	
 	for mes in profIPE:
 		if abs(Param[0]-mes[2])<=tolerance and abs(Param[1]-mes[3])<=tolerance and abs(Param[2]-mes[4])<=tolerance:
-			TypeIPE=str(mes[0])
-		else :
-			TypeIPE=0
-	
+			TypeIPE=str(mes[0])			
+		
 	for mes in profHE:
 		if abs(Param[0]-mes[2])<=tolerance and abs(Param[1]-mes[3])<=tolerance and abs(Param[2]-mes[4])<=tolerance:
 			TypeHE=str(mes[0])
-		else :
-			TypeHE=0
-	
+		
 	if TypeIPE!=0:
 		TypeIPEouHE="Poutrelle "+str(TypeIPE)
 	elif TypeHE!=0:
 		TypeIPEouHE="Poutrelle "+str(TypeHE)
 	else :
-		TypeIPEouHE="Pas de corespondance trouvée (h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])
+		TypeIPEouHE="h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
 	return TypeIPEouHE
 	
-def Profil02(type):
+def ProfilIPN(type):
 	
 	profIPN=ProfIPN()
 		
@@ -1095,7 +1211,7 @@ def Profil02(type):
 	
 	return TypeIPN
 
-def Profil03(type):
+def ProfilUPN(type):
 
 	profUPN=ProfUPN()
 	
@@ -1103,7 +1219,7 @@ def Profil03(type):
 	
 	return TypeUPN
 	
-def Profil04(type):
+def ProfilUPE(type):
 	
 	profUPE=ProfUPE()
 	
@@ -1111,65 +1227,133 @@ def Profil04(type):
 	
 	return TypeUPE
 	
-def Profil05(type):
-	
+def ProfilCorniere(type):
+
 	profCorniereEgaleAcier=ProfCorniereEgaleAcier()
 	profCorniereInegaleAcier=ProfCorniereInegaleAcier()
-	
+
 	Param=ParamCorniereAcier(type)
-	
+
 	TypeCorniere="Cornière "
-	
+	Test=0
+
 	if Param[0]-Param[1]<tolerance:
+		TypeCorniere=TypeCorniere+"égale "
 		for mes in profCorniereEgaleAcier:
 			if abs(Param[0]-mes[1])<=tolerance and abs(Param[2]-mes[2])<=tolerance :
-				TypeCorniere=TypeCorniere+"égale "+str(mes[1])+" x "+str(mes[1])+" ép. "+str(mes[2])
-	
+				TypeCorniere=TypeCorniere+str(mes[1])+" x "+str(mes[1])+" ép. "+str(mes[2])
+				Test=1
+	else :
+		TypeCorniere=TypeCorniere+"inégale "
+		for mes in profCorniereInegaleAcier:
+			if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[3])<=tolerance :
+				TypeCorniere=TypeCorniere+str(mes[1])+" x "+str(mes[2])+" ép. "+str(mes[3])
+				Test=1
+				
+	if Test==0:
+		TypeCorniere=TypeCorniere+"h="+str(Param[0])+" b="+str(Param[1])+" t="+str(Param[2])+" (pas en catalogue...)"
+
 	return TypeCorniere
-		
-def Profil06(type):	
+
+def ProfilPlatCarre(type):	
 
 	profPlat=ProfPlat()
 	profCarre=ProfCarre()
 	
-	TypePlatCarre="Plat ou Carré (Reste à faire...) "
+	Param=ParamPlatCarre(type)
 	
+	Test=0
+	
+	if Param[2]=="Carré":
+		for mes in profCarre:
+			if abs(Param[0]-mes[0])<=tolerance and abs(Param[1]-mes[0])<=tolerance :
+				TypePlatCarre="Profil carré "+str(mes[0])+" x "+str(mes[0])
+				Test=1
+	else:
+		n=0
+		nep=0
+		for ep in profPlat[0]:
+			if abs(ep-Param[1])<=tolerance:
+				nep=n
+			n=n+1				
+		n=0
+		lla=0
+		for largeur in profPlat:
+			if abs(largeur[0]-Param[0])<=tolerance:
+				lla=n
+			n=n+1
+		if profPlat[lla][nep]>0 and lla!=0:
+			print profPlat[lla][nep]
+			TypePlatCarre="Profil plat "+str(profPlat[0][nep])+" x "+str(profPlat[lla][0])
+			Test=1
+	
+	if Test==0:
+		TypePlatCarre="Profil "+str(Param[2])+" : "+str(Param[0])+" x "+str(Param[1])
+
 	return TypePlatCarre
-		
-def Profil07(type):
-	
+
+def ProfilTe(type):
+
 	profTe=ProfTe()
 	
-	TypeTe="Té (Reste à faire...) "
+	Param=ParamTe(type)
 	
+	Test=0
+	
+	if abs(Param[0]-Param[1])<=tolerance:
+		TypeTe="Té symétriques égaux à angles arrondis "
+	else:
+		TypeTe="Té symétriques inégaux à angles arrondis "
+	
+	for mes in profTe:
+		if abs(Param[0]-mes[0])<=tolerance and abs(Param[1]-mes[1])<=tolerance :
+			TypeTe=TypeTe+str(mes[0])+" x "+str(mes[1])
+			Test=1
+	
+	if Test==0:
+		TypeTe=TypeTe+str(mes[0])+" x "+str(mes[1])+" (pas en catalogue...)"
+
 	return TypeTe
-	
-def Profil08(type):
-	
+
+def ProfilRond(type):
+
 	profRond=ProfRond()
+
+	Param=ParamRond(type)
 	
-	TypeRond="Rond (Reste à faire...) "
+	TypeRond="Profil Rond Diamètre "
 	
-	return TypeRond
-	
-def Profil09(type):
-	
-	dimTubeRond=[]
-	
-	TypeTubeRond="Tube rond (Reste à faire...) "
-	
-	return TypeTubeRond
-	
-def Profil10(type):
-	
-	dimTubeCarre=[]	
-	
-	dimTubeRectangle=[]	
-	
-	TypeTubeCarreRectangle="Tube tube carré ou rectangle (Reste à faire...) "
-	
-	return TypeTubeCarreRectangle
+	Test=0
+
+	for mes in profRond:
 		
+		if abs(Param-mes[1])<=tolerance :
+			TypeRond=TypeRond+str(mes[1])
+			Test=1
+		 
+	if Test==0:
+		TypeRond=TypeRond+str(Param)+" (pas en catalogue...)"
+
+	return TypeRond
+
+def ProfilTubeRond(type):
+
+	dimTubeRond=[]
+
+	TypeTubeRond="Tube rond (Reste à faire...) "
+
+	return TypeTubeRond
+
+def ProfilTubeCarreRectangle(type):
+
+	dimTubeCarre=[]	
+
+	dimTubeRectangle=[]	
+
+	TypeTubeCarreRectangle="Tube tube carré ou rectangle (Reste à faire...) "
+
+	return TypeTubeCarreRectangle
+
 def Profil11(type):
 	
 	dimLAlu=[]	
@@ -1178,25 +1362,25 @@ def Profil11(type):
 	
 	return TypeLAlu
 
-def Profil12(type):
+def ProfilTouLAlu(type):
 	
 	dimUAlu=[]	
 	
 	dimTAlu=[]	
 	
-	TypeUouTAlu="Té ou L Alu (Reste à faire...) "
+	TypeTouLAlu="Té ou L Alu (Reste à faire...) "
 	
-	return TypeUouTAlu
+	return TypeTouLAlu
 
-def Profil13(type):
+def ProfilTubeCarreRectangleAlu(type):
 	
 	dimTubeCarreAlu=[]	
 	
 	dimTubeRectangleAlu=[]
 	
-	TypeCarreouRectangleAlu="Tube carré ou rectangle Alu (Reste à faire...) "
+	TypeTubeCarreRectangleAlu="Tube carré ou rectangle Alu (Reste à faire...) "
 	
-	return TypeUouTalu	
+	return TypeTubeCarreRectangleAlu	
 		
 def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites):
 	
@@ -1247,8 +1431,10 @@ if sel:
 		if TypeSections[n]==0:
 			print "problème"
 		else :
+			print "-+-"
 			print str(TypeSections[n])
 			print "Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
+			print "-+-"
 		n=n+1
 	
 		
