@@ -834,7 +834,140 @@ def ProfRond():
 	
 	return dimRond
 
+def ProfTubeRond():
 	
+	dimTubeRond=[]
+	
+	Den11="TUBES GAZ SOUDÉS SÉRIE LÉGÈRE DITS «TARIF 1 et 2»"
+	Den12="Norme de référence : NF EN 10255 (e NF A 49-145)"
+	Den13="Nuance : S195T"
+	#,DIAMÈTRE ,ÉPAISSEUR ,MASSE LINÉIQUE ,MASSE LINÉIQUE ,,
+	#,,,Tubes noirs lisses ,Tubes galva lisses,,
+	#,mm,mm,kg/m,kg/m,,
+	dimTubeRond.append([13.5,2,0.57,0.59,1])
+	dimTubeRond.append([17.2,2,0.75,0.78,1])
+	dimTubeRond.append([21.3,2.3,1.08,1.12,1])
+	dimTubeRond.append([26.9,2.3,1.40,1.46,1])
+	dimTubeRond.append([33.7,2.9,2.20,2.29,1])
+	dimTubeRond.append([42.4,2.9,2.82,2.93,1])
+	dimTubeRond.append([48.3,2.9,3.25,3.38,1])
+	dimTubeRond.append([60.3,3.2,4.51,4.69,1])
+	dimTubeRond.append([70.0,3.2,5.27,5.48,1])
+	dimTubeRond.append([76.1,3.2,5.75,5.98,1])
+	dimTubeRond.append([88.9,3.2,6.76,7.03,1])
+	dimTubeRond.append([101.6,3.6,8.70,9.05,1])
+	dimTubeRond.append([114.3,3.6,9.83,10.22,1])
+	dimTubeRond.append([139.7,4.5,15.00,15.60,1])
+	dimTubeRond.append([165.1,4.5,17.80,18.51,1])
+	Den21="TUBES GAZ SOUDÉS SÉRIE MOYENNE"
+	Den22="Norme de référence : NF EN 10255 (ex 49-145)"
+	Den23="Nuance : S195T "
+	#,DIAMÈTRE ,ÉPAISSEUR ,MASSE LINÉIQUE ,MASSE LINÉIQUE ,,
+	#,,,Tubes noirs lisses ,Tubes galva lisses,,
+	#,mm,mm,kg/m,kg/m,,
+	dimTubeRond.append([17.2,2.3,0.85,0.88,2])
+	dimTubeRond.append([21.3,2.6,1.2,1.25,2])
+	dimTubeRond.append([26.9,2.6,1.56,1.62,2])
+	dimTubeRond.append([33.7,3.2,2.41,2.51,2])
+	dimTubeRond.append([42.4,3.2,3.09,3.21,2])
+	dimTubeRond.append([48.3,3.2,3.56,3.7,2])
+	dimTubeRond.append([60.3,3.6,5.03,5.23,2])
+	dimTubeRond.append([70,3.6,5.9,6.14,2])
+	dimTubeRond.append([76.1,3.6,6.44,6.7,2])
+	dimTubeRond.append([88.9,4,8.38,8.72,2])
+	dimTubeRond.append([101.6,4,9.63,10.02,2])
+	dimTubeRond.append([114.3,4.5,12.2,12.69,2])
+	dimTubeRond.append([139.7,4.85,15,15.6,2])
+	dimTubeRond.append([165.1,4.85,17.8,18.51,2])
+	Den31="TUBES SANS SOUDURE DITS «TARIF 3»"
+	Den32="Norme de référence : NF EN 10255-S (ex NF A 49-115)"
+	Den33="Nuance : S195T"
+	#,DIAMÈTRE ,ÉPAISSEUR ,MASSE LINÉIQUE ,MASSE LINÉIQUE ,,
+	#,,,Tubes noirs lisses ,Tubes galva lisses,,
+	#,mm,mm,kg/m,kg/m,,
+	dimTubeRond.append([13.5,2.3,0.635,0.639,3])
+	dimTubeRond.append([17.2,2.3,0.845,0.851,3])
+	dimTubeRond.append([21.3,2.6,1.2,1.21,3])
+	dimTubeRond.append([26.9,2.6,1.56,1.57,3])
+	dimTubeRond.append([33.7,3.2,2.41,2.43,3])
+	dimTubeRond.append([42.4,3.2,3.09,3.12,3])
+	dimTubeRond.append([48.3,3.2,3.56,3.6,3])
+	dimTubeRond.append([60.3,3.6,5.03,5.1,3])
+	dimTubeRond.append([70,3.6,5.9,6.01,3])
+	dimTubeRond.append([76.1,3.6,6.44,6.56,3])
+	dimTubeRond.append([88.9,4,8.38,8.55,3])
+	dimTubeRond.append([101.6,4,9.63,9.81,3])
+	dimTubeRond.append([114.3,4.5,12.2,12.5,3])
+	dimTubeRond.append([139.7,4.5,15,15.5,3])
+	dimTubeRond.append([165.1,4.5,17.8,18.4,3])
+	Den41="TUBES SANS SOUDURE POUR CANALISATIONS DITS «TARIF 10»"
+	Den42="Norme de référence : NF EN 10216-1 (ex NF A 49-112)"
+	Den43="Nuance courante : P235"
+	#,DIAMÈTRE ,ÉPAISSEUR ,MASSE LINÉIQUE 
+	#,mm,mm,kg/m
+	dimTubeRond.append([21.3,2.00,0.952,0,4])
+	dimTubeRond.append([26.9,2.30,1.40,0,4])
+	dimTubeRond.append([33.7,2.30,1.78,0,4])
+	dimTubeRond.append([38,2.60,2.27,0,4])
+	dimTubeRond.append([42.4,2.60,2.55,0,4])
+	dimTubeRond.append([44.5,2.60,2.69,0,4])
+	dimTubeRond.append([48.3,2.60,2.93,0,4])
+	dimTubeRond.append([54,2.60,3.30,0,4])
+	dimTubeRond.append([57,2.90,3.87,0,4])
+	dimTubeRond.append([60.3,2.90,4.11,0,4])
+	dimTubeRond.append([70,2.90,4.80,0,4])
+	dimTubeRond.append([76.1,2.90,5.24,0,4])
+	dimTubeRond.append([88.9,3.20,6.76,0,4])
+	dimTubeRond.append([101.6,3.60,8.70,0,4])
+	dimTubeRond.append([108,3.60,9.27,0,4])
+	dimTubeRond.append([114.3,3.60,9.83,0,4])
+	dimTubeRond.append([133,4.00,12.70,0,4])
+	dimTubeRond.append([139.7,4.00,13.40,0,4])
+	dimTubeRond.append([159,4.50,17.10,0,4])
+	dimTubeRond.append([168.3,4.50,18.20,0,4])
+	dimTubeRond.append([193.7,5.60,25.10,0,4])
+	dimTubeRond.append([219.1,6.35,33.10,0,4])
+	dimTubeRond.append([244.5,6.30,37.00,0,4])
+	dimTubeRond.append([273,6.35,41.10,0,4])
+	dimTubeRond.append([323.9,7.10,55.50,0,4])
+	dimTubeRond.append([355.6,8.00,68.60,0,4])
+	dimTubeRond.append([406.4,8.80,86.30,0,4])
+	dimTubeRond.append([419,10.00,101.00,0,4])
+	Den51="TUBES SOUDÉS DITS «TARIF 19»"
+	Den52="Norme de référence : NF EN 10217-1 (ex NF A 49-141)"
+	Den53="Nuance : P235 TR1"
+	#,DIAMÈTRE ,ÉPAISSEUR ,MASSE LINÉIQUE 
+	#,mm,mm,kg/m
+	dimTubeRond.append([60.3,2.9,4.11,0,5])
+	dimTubeRond.append([70,2.9,4.80,0,5])
+	dimTubeRond.append([76.1,2.9,5.24,0,5])
+	dimTubeRond.append([88.9,3.2,6.76,0,5])
+	dimTubeRond.append([101.6,3.6,8.70,0,5])
+	dimTubeRond.append([108,3.6,9.27,0,5])
+	dimTubeRond.append([114.3,3.6,9.83,0,5])
+	dimTubeRond.append([133,4,12.70,0,5])
+	dimTubeRond.append([139.7,4,13.40,0,5])
+	dimTubeRond.append([159,4.5,17.10,0,5])
+	dimTubeRond.append([168.3,4.5,18.20,0,5])
+	Den61="TUBES SOUDÉS DE PRÉCISION NON DÉCALAMINÉS"
+	Den62="Norme de référence : NF EN 10305-3 (ex XPA 49-646)"
+	Den63="Nuance courante : E220CR2 État de surface : S1 (non décalaminé)"
+	#,DIAMÈTRE ,ÉPAISSEUR ,MASSE LINÉIQUE 
+	#,mm,mm,kg/m
+	dimTubeRond.append([25,1.5,0.869,0,6])
+	dimTubeRond.append([30,1.5,1.05,0,6])
+	dimTubeRond.append([35,1.5,1.24,0,6])
+	dimTubeRond.append([38,1.5,1.35,0,6])
+	dimTubeRond.append([40,1.5,1.42,0,6])
+	dimTubeRond.append([45,1.5,1.61,0,6])
+	dimTubeRond.append([50,1.5,1.79,0,6])
+	dimTubeRond.append([60,1.5,2.16,0,6])
+	dimTubeRond.append([70,1.5,2.53,0,6])
+	
+	Deno=[Den11,Den12,Den13,Den21,Den22,Den23,Den31,Den32,Den33,Den41,Den42,Den43,Den51,Den52,Den53,Den61,Den62,Den63]
+	
+	return dimTubeRond,Deno
+		
 #
 #	Recherche caractéristique sections
 #
@@ -1013,6 +1146,45 @@ def ParamRond(FaceSection):
 	d=edge.Length/(2*math.pi)	
 	
 	return d
+
+def ParamTubeRond(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	edge1=Section.Faces[0].Edges[ln[0][0]]
+	edge2=Section.Faces[0].Edges[ln[1][0]]
+	
+	d1=edge1.Length/(2*math.pi)	
+	d2=edge2.Length/(2*math.pi)	
+	ep=(d1-d2)/2
+	
+	return d1,d2,ep
+
+def ParamTubeCarreRectangle(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	edge0=Section.Faces[0].Edges[ln[0][0]]
+	edge2=Section.Faces[0].Edges[ln[2][0]]
+	edge4=Section.Faces[0].Edges[ln[4][0]]
+	edge6=Section.Faces[0].Edges[ln[6][0]]
+	
+	CDG=Section.Faces[0].CenterOfMass
+	
+	C0=centerLinePoint(edge0,0)
+	C2=centerLinePoint(edge2,0)
+	
+	d0=C0.sub(CDG)
+	d2=C2.sub(CDG)
+	h=math.sqrt((d0.x)**2+(d0.y)**2+(d0.z)**2)
+	b=math.sqrt((d2.x)**2+(d2.y)**2+(d2.z)**2)
+	
+	return h,b
+
 
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
@@ -1337,20 +1509,45 @@ def ProfilRond(type):
 	return TypeRond
 
 def ProfilTubeRond(type):
-
-	dimTubeRond=[]
-
-	TypeTubeRond="Tube rond (Reste à faire...) "
+	
+	profTubeRond=ProfTubeRond()
+	
+	Param=ParamTubeRond(type)
+	
+	Test=0
+	
+	for mes in profTubeRond[0]:
+		if abs(Param[0]-mes[0])<=tolerance and abs(Param[2]-mes[1])<=tolerance :
+			
+			TypeTubeRond=profTubeRond[1][3*mes[4]-3]+"\n"
+			TypeTubeRond=TypeTubeRond+profTubeRond[1][3*mes[4]-2]+"\n"
+			TypeTubeRond=TypeTubeRond+profTubeRond[1][3*mes[4]-1]+"\n"
+			TypeTubeRond=TypeTubeRond+"Diamètre "+str(mes[0])+", épaisseur "+str(mes[1])+\
+" ,Diamètre intérieur "+str(2*(mes[0]/2-mes[1]))
+			Test=1
+	
+	if Test==0:
+		TypeTubeRond="Tube Rond Diamètre "+str(Param[0])+", épaisseur "+str(Param[2])+"\
+, Diamètre intérieur "+str(Param[1])+"\n(pas en catalogue...)"
 
 	return TypeTubeRond
 
 def ProfilTubeCarreRectangle(type):
 
-	dimTubeCarre=[]	
-
-	dimTubeRectangle=[]	
-
-	TypeTubeCarreRectangle="Tube tube carré ou rectangle (Reste à faire...) "
+	#~ profTubeCarre=ProfTubeCarre()
+	#~ 
+	#~ profTubeRectangle=ProfTubeRectangle()
+	
+	Param=ParamTubeCarreRectangle(type)
+		
+	Test=0
+	
+	if Test==0:
+		if Param[0]==Param[1]:
+			TypeTubeCarreRectangle="Tube carré "
+		else :
+			TypeTubeCarreRectangle="Tube rectangle "
+		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[0])+" x "+str(Param[1])+", épaisseur : "
 
 	return TypeTubeCarreRectangle
 
