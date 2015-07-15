@@ -10,6 +10,7 @@
 #
 #--------------------
 # Cornière profilé à froids
+# Différencier UPN et coulisse à froid
 # Tracer la fibre neutre
 # Calculer poids et comparer au poid catalogue
 # Platine
@@ -17,6 +18,7 @@
 # Prendre en compte Cornièrer acier au-dela de 200x200 géométrie section différente
 # Identifier tube cintrés
 # Catalogue Tubes carrés et rectangles alu et acier
+
 #--------------------
 
 
@@ -53,19 +55,31 @@ def Ln(Edges):
 	L=0
 	n=0
 	for edge in Edges:
-		#~ print edge.curvatureAt(0.0)
 		if edge.curvatureAt(0.0)<=tolerance:
-			#~ Part.show(edge)
 			L=edge.Length
 			Ln.append([n,L])
 		n=n+1
 	
-	#~ print Ln
 	Ln.sort(cmp=comp)
-	#~ print Ln
 	
 	
 	return Ln
+
+def LnCurves(Edges):
+	
+	Ln=[]
+	L=0
+	n=0
+	for edge in Edges:
+		L=edge.Length
+		Ln.append([n,L])
+		n=n+1
+
+	Ln.sort(cmp=comp)
+	
+	
+	return Ln
+
 
 #Copie Macro WorkFeature
 
@@ -1158,14 +1172,18 @@ def ParamTubeRond(FaceSection):
 	
 	Section=FaceSection[1]
 	
-	ln=Ln(Section.Faces[0].Edges)
+	ln=LnCurves(Section.Faces[0].Edges)
 	
 	edge1=Section.Faces[0].Edges[ln[0][0]]
 	edge2=Section.Faces[0].Edges[ln[1][0]]
+	print ln
 	
-	d1=edge1.Length/(2*math.pi)	
-	d2=edge2.Length/(2*math.pi)	
+	
+	d1=2*(edge1.Length/(2*math.pi))
+	d2=2*(edge2.Length/(2*math.pi))
 	ep=(d1-d2)/2
+	
+	print d1,d2,ep
 	
 	return d1,d2,ep
 
