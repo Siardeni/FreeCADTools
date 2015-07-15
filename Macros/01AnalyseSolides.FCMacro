@@ -16,6 +16,7 @@
 # Tôles pliées
 # Prendre en compte Cornièrer acier au-dela de 200x200 géométrie section différente
 # Identifier tube cintrés
+# Catalogue Tubes carrés et rectangles alu et acier
 #--------------------
 
 
@@ -52,11 +53,17 @@ def Ln(Edges):
 	L=0
 	n=0
 	for edge in Edges:
-		L=edge.Length
-		Ln.append([n,L])
+		#~ print edge.curvatureAt(0.0)
+		if edge.curvatureAt(0.0)<=tolerance:
+			#~ Part.show(edge)
+			L=edge.Length
+			Ln.append([n,L])
 		n=n+1
 	
+	#~ print Ln
 	Ln.sort(cmp=comp)
+	#~ print Ln
+	
 	
 	return Ln
 
@@ -1168,22 +1175,49 @@ def ParamTubeCarreRectangle(FaceSection):
 	
 	ln=Ln(Section.Faces[0].Edges)
 	
-	edge0=Section.Faces[0].Edges[ln[0][0]]
-	edge2=Section.Faces[0].Edges[ln[2][0]]
-	edge4=Section.Faces[0].Edges[ln[4][0]]
-	edge6=Section.Faces[0].Edges[ln[6][0]]
+	#Recherche de toutes les longueurs d'arrête différentes
+	L=ln[0][1]
+	nbLdiff=[ln[0][0]]
+	for ed in ln:
+		if abs(ed[1]-L)>=tolerance:
+			nbLdiff.append(ed[0])
+		L=ed[1]
 	
-	CDG=Section.Faces[0].CenterOfMass
 	
-	C0=centerLinePoint(edge0,0)
-	C2=centerLinePoint(edge2,0)
+	ListeCotes=[]
+	for EdPr in nbLdiff:
+		V1=Section.Faces[0].Edges[EdPr].tangentAt(0.0)
+		C1=centerLinePoint(Section.Faces[0].Edges[EdPr],0)
+		Lmax=0.0
+		for ed in ln:
+			V2=Section.Faces[0].Edges[ed[0]].tangentAt(0.0)
+			if ed[0]!= EdPr and abs(V1.x)-abs(V2.x)<=tolerance and abs(V1.y)-abs(V2.y)<=tolerance and abs(V1.z)-abs(V2.z)<=tolerance :
+				C2=centerLinePoint(Section.Faces[0].Edges[ed[0]],0)
+				d=C1.sub(C2)
+				l=d.Length
+				if l>Lmax :
+					Lmax=l
+					nmax=ed[0]
+		V1=Section.Faces[0].Edges[nmax].tangentAt(0.0)
+		C1=centerLinePoint(Section.Faces[0].Edges[nmax],0)
+		CoteEdPr=[]
+		for ed in ln:
+			V2=Section.Faces[0].Edges[ed[0]].tangentAt(0.0)
+			if ed[0]!= nmax and abs(V1.x)-abs(V2.x)<=tolerance and abs(V1.y)-abs(V2.y)<=tolerance and abs(V1.z)-abs(V2.z)<=tolerance :
+				C2=centerLinePoint(Section.Faces[0].Edges[ed[0]],0)
+				d=C1.sub(C2)
+				l=d.Length
+				CoteEdPr.append(l)
+		ListeCotes.append(CoteEdPr)
 	
-	d0=C0.sub(CDG)
-	d2=C2.sub(CDG)
-	h=math.sqrt((d0.x)**2+(d0.y)**2+(d0.z)**2)
-	b=math.sqrt((d2.x)**2+(d2.y)**2+(d2.z)**2)
-	
-	return h,b
+	if len(ListeCotes)==2:
+		b=max(ListeCotes[1])
+	else:
+		b=max(ListeCotes[0])
+	h=max(ListeCotes[0])
+	ep=min(ListeCotes[0])
+		
+	return h,b,ep
 
 
 def GetSection(Sol):
@@ -1547,7 +1581,7 @@ def ProfilTubeCarreRectangle(type):
 			TypeTubeCarreRectangle="Tube carré "
 		else :
 			TypeTubeCarreRectangle="Tube rectangle "
-		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[0])+" x "+str(Param[1])+", épaisseur : "
+		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 
 	return TypeTubeCarreRectangle
 
@@ -1575,7 +1609,19 @@ def ProfilTubeCarreRectangleAlu(type):
 	
 	dimTubeRectangleAlu=[]
 	
-	TypeTubeCarreRectangleAlu="Tube carré ou rectangle Alu (Reste à faire...) "
+	Param=ParamTubeCarreRectangle(type)
+		
+	Test=0
+	
+	if Test==0:
+		if Param[0]==Param[1]:
+			TypeTubeCarreRectangleAlu="Tube carré aluminium "
+		else :
+			TypeTubeCarreRectangleAlu="Tube rectangle aluminium "
+		TypeTubeCarreRectangleAlu=TypeTubeCarreRectangleAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
+
+	
+	#~ TypeTubeCarreRectangleAlu="Tube carré ou rectangle Alu (Reste à faire...) "
 	
 	return TypeTubeCarreRectangleAlu	
 		
