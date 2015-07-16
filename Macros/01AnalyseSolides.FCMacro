@@ -10,7 +10,6 @@
 #
 #--------------------
 # Cornière profilé à froids
-# Différencier UPN et coulisse à froid
 # Tracer la fibre neutre
 # Calculer poids et comparer au poid catalogue
 # Platine
@@ -34,6 +33,7 @@ Gui=FreeCADGui
 tolerance=0.000001
 
 def comp(v1, v2):
+	#fonction utile a xxx.sort(cmp=comp)
     if v1[1]>v2[1]:
         return -1
     elif v1[1]>v2[1]:
@@ -42,6 +42,7 @@ def comp(v1, v2):
         return 0
         
 def compinv(v1, v2):
+	#fonction utile a xxx.sort(cmp=compinv)
     if v1[1]<v2[1]:
         return -1
     elif v1[1]<v2[1]:
@@ -50,6 +51,7 @@ def compinv(v1, v2):
         return 0
 
 def Ln(Edges):
+	#Tri les arrêtes par longeurs en excluant les arrêtes courbées
 	
 	Ln=[]
 	L=0
@@ -66,7 +68,7 @@ def Ln(Edges):
 	return Ln
 
 def LnCurves(Edges):
-	
+	#Tri les arrêtes par longeurs y compris les arrêtes courbées
 	Ln=[]
 	L=0
 	n=0
@@ -1001,47 +1003,16 @@ def ParamIouH(FaceSection):
 	
 	ln=Ln(Section.Faces[0].Edges)
 		
-	#~ #Recherche de l'arrête la plus longue
-	#~ LMax=0.0
-	#~ NoMax=0
-	#~ n=0
-	#~ for edge in Section.Faces[0].Edges:
-		#~ if edge.Length>LMax:
-			#~ LMax=edge.Length
-			#~ NoMax=n
-		#~ n=n+1
-	#~ Part.show(Section.Faces[0].Edges[NoMax])
-	#~ #nombre d'arrête = Lmax doit être 2
-	#~ n=0
-	#~ for edge in Section.Faces[0].Edges:
-		#~ if edge.Length-LMax<=tolerance:
-			#~ n=n+1
-	#~ if n!=2:
-		#~ "Problème : "
-		#~ 
-	#~ #Recherche des 2 arrêtes égales de longueur inférieure
-	#~ LMed=0.0
-	#~ NoMed=0
-	#~ n=0
-	#~ for edge in Section.Faces[0].Edges:
-		#~ if edge.Length-LMax>tolerance and edge.Length>LMed:
-			#~ LMed=edge.Length
-			#~ NoMed=n
-		#~ n=n+1
-	
 	edge1=Section.Faces[0].Edges[ln[0][0]]
 	edge2=Section.Faces[0].Edges[ln[2][0]]
-	#~ Part.show(edge1)
-	#~ Part.show(edge2)
-			
+
 	C1=centerLinePoint(edge1,0)
 	C2=centerLinePoint(edge2,0)
 	d1=C1.sub(CDG)
 	d2=C2.sub(CDG)
 	l1=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
 	l2=math.sqrt((d2.x)**2+(d2.y)**2+(d2.z)**2)
-	#~ print l1
-	#~ print l2
+
 	if l1>l2:
 		h=l1*2
 		b=edge1.Length
@@ -1176,14 +1147,14 @@ def ParamTubeRond(FaceSection):
 	
 	edge1=Section.Faces[0].Edges[ln[0][0]]
 	edge2=Section.Faces[0].Edges[ln[1][0]]
-	print ln
+	#~ print ln
 	
 	
 	d1=2*(edge1.Length/(2*math.pi))
 	d2=2*(edge2.Length/(2*math.pi))
 	ep=(d1-d2)/2
 	
-	print d1,d2,ep
+	#~ print d1,d2,ep
 	
 	return d1,d2,ep
 
@@ -1200,8 +1171,7 @@ def ParamTubeCarreRectangle(FaceSection):
 		if abs(ed[1]-L)>=tolerance:
 			nbLdiff.append(ed[0])
 		L=ed[1]
-	
-	
+	print nbLdiff
 	ListeCotes=[]
 	for EdPr in nbLdiff:
 		V1=Section.Faces[0].Edges[EdPr].tangentAt(0.0)
@@ -1237,13 +1207,151 @@ def ParamTubeCarreRectangle(FaceSection):
 		
 	return h,b,ep
 
+def ParamTubeCarreRectangleAlu(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	edge1=Section.Faces[0].Edges[ln[0][0]]
+	edge10X=edge1.Vertexes[0].X
+	edge10Y=edge1.Vertexes[0].Y
+	edge10Z=edge1.Vertexes[0].Z
+	edge11X=edge1.Vertexes[1].X
+	edge11Y=edge1.Vertexes[1].Y
+	edge11Z=edge1.Vertexes[1].Z
+
+	h=edge1.Length
+	cpt=0
+	for ed in Section.Faces[0].Edges:
+		edX=ed.Vertexes[0].X
+		edY=ed.Vertexes[0].Y
+		edZ=ed.Vertexes[0].Z
+		if cpt!=ln[0][0]:
+			if abs(edX-edge10X)<=tolerance and abs(edY-edge10Y)<=tolerance and abs(edZ-edge10Z)<=tolerance :
+				b=ed.Length
+			if abs(edX-edge11X)<=tolerance and abs(edY-edge11Y)<=tolerance and abs(edZ-edge11Z)<=tolerance :
+				b=ed.Length
+		cpt=cpt+1
+	L=Section.Faces[0].Wires[0].Length
+	cpt=0
+	for wire in Section.Faces[0].Wires:
+		if L-wire.Length>=tolerance:
+			L=wire.Length
+			n=cpt
+		cpt=cpt+1
+	
+	C0=centerLinePoint(edge1,0)
+	C1=centerLinePoint(Section.Faces[0].Wires[n].Edges[0])
+	dmin=C0.sub(C1).Length
+	
+	for edge in Section.Faces[0].Wires[n].Edges:
+		Cx=centerLinePoint(edge,0)
+		dist=C0.sub(Cx).Length
+		if dist-dmin<=tolerance:
+			dmin=dist
+	
+	ep=dmin
+	
+	
+	
+	return h,b,ep
+
+
+def ParamUPE(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	#~ print ln
+	
+	h=ln[0][1]
+	b=ln[2][1]
+	tw=ln[len(ln)-1][1]
+	
+	return h,b,tw
+	
+def ParamUPN(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	#~ print ln
+	
+	h=ln[0][1]
+	b=ln[2][1]
+	
+	edge1=Section.Faces[0].Edges[ln[0][0]]
+	edge2=Section.Faces[0].Edges[ln[1][0]]
+	
+	C1=centerLinePoint(edge1,0)
+	C2=centerLinePoint(edge2,0)
+	
+	tw=C1.sub(C2).Length
+	
+	return h,b,tw
+	
+def ParamLAlu(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	#~ print ln
+	
+	h=ln[0][1]
+	
+	edge1=Section.Faces[0].Edges[ln[0][0]]
+	edge10X=edge1.Vertexes[0].X
+	edge10Y=edge1.Vertexes[0].Y
+	edge10Z=edge1.Vertexes[0].Z
+	edge11X=edge1.Vertexes[1].X
+	edge11Y=edge1.Vertexes[1].Y
+	edge11Z=edge1.Vertexes[1].Z
+	
+	ListeArretEnContact=[]
+	cpt=0
+	
+	for ed in Section.Faces[0].Edges:
+		for vert in ed.Vertexes:
+			edX=vert.X
+			edY=vert.Y
+			edZ=vert.Z
+			if cpt!=ln[0][0]:
+				if abs(edX-edge10X)<=tolerance and abs(edY-edge10Y)<=tolerance and abs(edZ-edge10Z)<=tolerance :
+					ListeArretEnContact.append([ed.Length,cpt])
+				if abs(edX-edge11X)<=tolerance and abs(edY-edge11Y)<=tolerance and abs(edZ-edge11Z)<=tolerance :
+					ListeArretEnContact.append([ed.Length,cpt])
+			cpt=cpt+1
+	
+	ListeArretEnContact.sort()
+	
+	b=ListeArretEnContact[1][0]
+		
+	ep=ListeArretEnContact[0][0]
+	
+	return h,b,ep
+
+def ParamUPAF(FaceSection):
+	
+	Section=FaceSection[1]
+	
+	ln=Ln(Section.Faces[0].Edges)
+	
+	
+	h=10
+	b=10
+	ep=10
+	
+		
+	return h,b,ep
+
 
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
 	FacesSol=Sol.Shape.Faces
-	#~ Lengths=[]
-	#~ for edge in Edges:
-		#~ Lengths.append(edge.Length)
 	#---------------
 	#Recherche de l'arrête la plus longue
 	HighLength=0.0
@@ -1266,27 +1374,6 @@ def GetSection(Sol):
 				ParallelEdges.append(n)
 				#~ Part.show(EdgesSol[n])
 		n=n+1	
-	#~ LongiFaces=[]
-	#~ n=0
-	#~ for face in FacesSol:
-		#~ e=0
-		#~ for edge in face.Edges:
-			#~ if edge.curvatureAt(0)==0.0:
-				#~ for pe in ParallelEdges:
-					#~ if abs(EdgesSol[pe].Curve.StartPoint.x-edge.Curve.StartPoint.x)<=tolerance \
-						#~ and abs(EdgesSol[pe].Curve.StartPoint.y-edge.Curve.StartPoint.y)<=tolerance \
-							#~ and abs(EdgesSol[pe].Curve.StartPoint.z-edge.Curve.StartPoint.z)<=tolerance \
-								#~ and abs(EdgesSol[pe].Curve.EndPoint.x-edge.Curve.EndPoint.x)<=tolerance \
-									#~ and abs(EdgesSol[pe].Curve.EndPoint.y-edge.Curve.EndPoint.y)<=tolerance \
-										#~ and abs(EdgesSol[pe].Curve.EndPoint.z-edge.Curve.EndPoint.z)<=tolerance :
-											#~ and abs(EdgesSol[pe].curvatureAt(0)-edge.curvatureAt(0))<=tolerance \
-												#~ and abs(EdgesSol[pe].curvatureAt(1)-edge.curvatureAt(1))<=tolerance :
-													#~ e=e+1
-													#~ Part.show(EdgesSol[pe])
-		#~ if e>=2:
-			#~ LongiFaces.append(n)
-			#~ Part.show(FacesSol[n])
-		#~ n=n+1
 	#---------------
 	#Recherche des deux faces d'extrémitées
 	ExtremFaces=[]
@@ -1357,39 +1444,54 @@ def TypeSection(Section):
 	NbWires=len(Section.Wires)
 	#si 2 profil fermé, si 1 profil ouvert
 	
-	NbDroite=0
+	LgDroites=[]
 	for edge in Section.Edges:
 		if edge.curvatureAt(0.0)<tolerance:
-			NbDroite=NbDroite+1
+			LgDroites.append(edge.Length)
+	NbDroite=len(LgDroites)
+	LgDroites.sort()
+	NbLgDiff=1
+	if NbDroite >0:
+		Lg=LgDroites[0]
+		for n in LgDroites:
+			if abs(n-Lg)>=tolerance:
+				NbLgDiff=NbLgDiff+1
+				Lg=n
 		
-	Type=[FamilleProfile(NbEdge,NbWires,NbDroite),Section]
+	else:
+		NbLgDiff=0
+	#~ print NbLgDiff
+		
+	Type=[FamilleProfile(NbEdge,NbWires,NbDroite,NbLgDiff),Section]
 	if Type[0]!= False:
-		if Type[0][4]==1:
+		if Type[0][5]==1:
 			Profil=ProfilIPEouHE(Type)	
-		elif Type[0][4]==2:
+		elif Type[0][5]==2:
 			Profil=ProfilIPN(Type)	
-		elif Type[0][4]==3:
+		elif Type[0][5]==3:
 			Profil=ProfilUPN(Type)	
-		elif Type[0][4]==4:
+		elif Type[0][5]==4:
 			Profil=ProfilUPE(Type)	
-		elif Type[0][4]==5:
+		elif Type[0][5]==5:
 			Profil=ProfilCorniere(Type)	
-		elif Type[0][4]==6:
+		elif Type[0][5]==6:
 			Profil=ProfilPlatCarre(Type)	
-		elif Type[0][4]==7:
+		elif Type[0][5]==7:
 			Profil=ProfilTe(Type)	
-		elif Type[0][4]==8:
+		elif Type[0][5]==8:
 			Profil=ProfilRond(Type)	
-		elif Type[0][4]==9:
+		elif Type[0][5]==9:
 			Profil=ProfilTubeRond(Type)	
-		elif Type[0][4]==10:
+		elif Type[0][5]==10:
 			Profil=ProfilTubeCarreRectangle(Type)	
-		elif Type[0][4]==11:
+		elif Type[0][5]==11:
 			Profil=Profil11(Type)	
-		elif Type[0][4]==12:
-			Profil=ProfilTouLAlu(Type)	
-		elif Type[0][4]==13:
-			Profil=ProfilTubeCarreRectangleAlu(Type)	
+		elif Type[0][5]==12:
+			Profil=ProfilTouUAlu(Type)	
+		elif Type[0][5]==13:
+			Profil=ProfilTubeCarreRectangleAlu(Type)
+		elif Type[0][5]==14:
+			Profil=ProfilUPAFAcier(Type)	
 	else:
 		Profil=0
 	return Profil
@@ -1413,9 +1515,9 @@ def ProfilIPEouHE(type):
 			TypeHE=str(mes[0])
 		
 	if TypeIPE!=0:
-		TypeIPEouHE="Poutrelle "+str(TypeIPE)
+		TypeIPEouHE="Poutre "+str(TypeIPE)
 	elif TypeHE!=0:
-		TypeIPEouHE="Poutrelle "+str(TypeHE)
+		TypeIPEouHE="Poutre "+str(TypeHE)
 	else :
 		TypeIPEouHE="h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
@@ -1427,7 +1529,7 @@ def ProfilIPN(type):
 		
 	Param=ParamIouH(type)
 	
-	TypeIPN="Poutrelle IPN "
+	TypeIPN="Poutre IPN "
 	
 	for mes in profIPN:
 		if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[3])<=tolerance:
@@ -1439,7 +1541,18 @@ def ProfilUPN(type):
 
 	profUPN=ProfUPN()
 	
-	TypeUPN="Poutrelle UPN (Reste à faire...) "
+	Param=ParamUPN(type)
+	
+	Test=0
+	
+	for mes in profUPN:
+		if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[3])<=tolerance :
+			TypeUPN="Poutre UPN "+str(mes[1])
+			Test=1
+
+	if Test==0:
+		TypeUPN="Poutre UPN "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
+	
 	
 	return TypeUPN
 	
@@ -1447,7 +1560,18 @@ def ProfilUPE(type):
 	
 	profUPE=ProfUPE()
 	
-	TypeUPE="Poutrelle UPE (Reste à faire...) "
+	Param=ParamUPE(type)
+	
+	Test=0
+	
+	for mes in profUPE:
+		if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[4])<=tolerance :
+			TypeUPE="Poutre UPE "+str(mes[1])
+			Test=1
+
+	if Test==0:
+		TypeUPE="Poutre UPE "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
+	
 	
 	return TypeUPE
 	
@@ -1458,7 +1582,7 @@ def ProfilCorniere(type):
 
 	Param=ParamCorniereAcier(type)
 
-	TypeCorniere="Cornière "
+	TypeCorniere="Profil Cornière "
 	Test=0
 
 	if Param[0]-Param[1]<tolerance:
@@ -1507,7 +1631,7 @@ def ProfilPlatCarre(type):
 				lla=n
 			n=n+1
 		if profPlat[lla][nep]>0 and lla!=0:
-			print profPlat[lla][nep]
+			#~ print profPlat[lla][nep]
 			TypePlatCarre="Profil plat "+str(profPlat[0][nep])+" x "+str(profPlat[lla][0])
 			Test=1
 	
@@ -1525,9 +1649,9 @@ def ProfilTe(type):
 	Test=0
 	
 	if abs(Param[0]-Param[1])<=tolerance:
-		TypeTe="Té symétriques égaux à angles arrondis "
+		TypeTe="Profil Té symétriques égaux à angles arrondis "
 	else:
-		TypeTe="Té symétriques inégaux à angles arrondis "
+		TypeTe="Profil Té symétriques inégaux à angles arrondis "
 	
 	for mes in profTe:
 		if abs(Param[0]-mes[0])<=tolerance and abs(Param[1]-mes[1])<=tolerance :
@@ -1579,7 +1703,7 @@ def ProfilTubeRond(type):
 			Test=1
 	
 	if Test==0:
-		TypeTubeRond="Tube Rond Diamètre "+str(Param[0])+", épaisseur "+str(Param[2])+"\
+		TypeTubeRond="Profil Tube Rond Diamètre "+str(Param[0])+", épaisseur "+str(Param[2])+"\
 , Diamètre intérieur "+str(Param[1])+"\n(pas en catalogue...)"
 
 	return TypeTubeRond
@@ -1596,80 +1720,89 @@ def ProfilTubeCarreRectangle(type):
 	
 	if Test==0:
 		if Param[0]==Param[1]:
-			TypeTubeCarreRectangle="Tube carré "
+			TypeTubeCarreRectangle="Profil Tube carré "
 		else :
-			TypeTubeCarreRectangle="Tube rectangle "
-		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
+			TypeTubeCarreRectangle="Profil Tube rectangle "
+		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[1])+" x "+str(Param[0])+", épaisseur : "+str(Param[2])
 
 	return TypeTubeCarreRectangle
 
 def Profil11(type):
 	
-	dimLAlu=[]	
-	
-	TypeLAlu="Cornière alu (Reste à faire...) "
-	
-	return TypeLAlu
-
-def ProfilTouLAlu(type):
-	
-	dimUAlu=[]	
-	
-	dimTAlu=[]	
-	
-	TypeTouLAlu="Té ou L Alu (Reste à faire...) "
-	
-	return TypeTouLAlu
-
-def ProfilTubeCarreRectangleAlu(type):
-	
-	dimTubeCarreAlu=[]	
-	
-	dimTubeRectangleAlu=[]
-	
-	Param=ParamTubeCarreRectangle(type)
+	Param=ParamLAlu(type)
 		
 	Test=0
 	
 	if Test==0:
 		if Param[0]==Param[1]:
-			TypeTubeCarreRectangleAlu="Tube carré aluminium "
+			TypeLAlu="Profil cornière aluminium égale "
 		else :
-			TypeTubeCarreRectangleAlu="Tube rectangle aluminium "
+			TypeLAlu="Profil cornière aluminium inégale "
+		TypeLAlu=TypeLAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
+	
+	return TypeLAlu
+
+def ProfilTouUAlu(type):
+	
+	TypeTouUAlu="Té ou U Alu (Reste à faire...) "
+	
+	return TypeTouUAlu
+
+def ProfilTubeCarreRectangleAlu(type):
+	
+	Param=ParamTubeCarreRectangleAlu(type)
+		
+	Test=0
+	
+	if Test==0:
+		if Param[0]==Param[1]:
+			TypeTubeCarreRectangleAlu="Profil Tube carré aluminium "
+		else :
+			TypeTubeCarreRectangleAlu="Profil Tube rectangle aluminium "
 		TypeTubeCarreRectangleAlu=TypeTubeCarreRectangleAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 
+	return TypeTubeCarreRectangleAlu
 	
-	#~ TypeTubeCarreRectangleAlu="Tube carré ou rectangle Alu (Reste à faire...) "
+def ProfilUPAFAcier(type):
 	
-	return TypeTubeCarreRectangleAlu	
+	Param=ParamUPAF(type)
 		
-def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites):
+	Test=0
 	
-	Famille=[[16,1,12,"IPE IPEA HEA HEB HEM",1],\
-	[20,1,12,"IPN",2],\
-	[12,1,8,"UPN",3],\
-	[10,1,8,"UPE",4],\
-	[9,1,6,"Corniere Acier",5],\
-	[4,1,4,"Plat Carre",6],\
-	[14,1,8,"Te",7],\
-	[1,1,0,"Rond",8],\
-	[2,2,0,"Tube Rond",9],\
-	[16,2,8,"Tube Carre Rectangle acier",10],\
-	[6,1,6,"Profil L Alu",11],\
-	[8,1,8,"Profil U T Alu",12],\
-	[8,2,8,"Tube Carre Rectangle Alu",13]]
+	if Test==0:
+		TypeUPAFAcier="En travaux Profil UPAF (coulisse) "+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
+		
+	return TypeUPAFAcier
+		
+def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 	
-	#~ print "------------"
-	#~ print NbArretes
-	#~ print ProfilOuvert
-	#~ print NbArretesDroites
-	#~ print "------------"
+	Famille=[[16,1,12,[4],"IPE IPEA HEA HEB HEM",1],\
+	[20,1,12,[4],"IPN",2],\
+	[12,1,8,[5],"UPN",3],\
+	[10,1,8,[5],"UPE",4],\
+	[9,1,6,[3,4,5],"Corniere Acier",5],\
+	[4,1,4,[1,2],"Plat Carre",6],\
+	[14,1,8,[4,5],"Te",7],\
+	[1,1,0,[0],"Rond",8],\
+	[2,2,0,[0],"Tube Rond",9],\
+	[16,2,8,[1,2],"Tube Carre Rectangle acier",10],\
+	[6,1,6,[3,4,5],"Profil L Alu",11],\
+	[8,1,8,[3,4,5],"Profil U T Alu",12],\
+	[8,2,8,[2,3,4],"Tube Carre Rectangle Alu",13],\
+	[12,1,8,[2,3],"UPAF acier",14]]
+	
+	print NbArretes
+	print ProfilOuvert
+	print NbArretesDroites
+	print NbLgArrDiff
+	
 	
 	TypeProfil=False
 	for f in Famille:
 		if f[0]==NbArretes and f[1]==ProfilOuvert and f[2]==NbArretesDroites:
-			TypeProfil=f
-	#~ print TypeProfil				
+			for n in f[3]:
+				if NbLgArrDiff==n:
+					TypeProfil=f
 	return TypeProfil
 	
 oldDocumentObjects=App.ActiveDocument.Objects
