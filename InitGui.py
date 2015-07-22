@@ -95,6 +95,7 @@ class FreeCADTools (Workbench):
 		commandslistOu = ["M_Extract","M_InfoVolMasse","M_OldFuse"]
 		commandslistCalpinage = ["M_MCalpinage1D"]
 		commandslistPoints = ["M_MPoints3D"]
+		commandslistExport = ["M_MExportStpWithName"]
 		commandslistEurocode = ["M_PlatineEurocode"]
 		commandslistDivers = ["M_Palette"]
 		
@@ -113,6 +114,7 @@ class FreeCADTools (Workbench):
 		
 		self.appendMenu(["Calpinage"],commandslistCalpinage)
 		self.appendMenu(["Points"],commandslistPoints)
+		self.appendMenu(["Export"],commandslistExport)
 		self.appendMenu(["Eurocode"],commandslistEurocode)
 		self.appendMenu(["Divers"],commandslistDivers)
 		

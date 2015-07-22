@@ -10,14 +10,12 @@
 #####################################
 # Importation de fonctions externes :
 
-import FreeCAD, FreeCADGui, Part, math, os, time, FreeCADTools, Draft
+import FreeCAD, FreeCADGui, Part, math, os, time, FreeCADTools, Draft, ImportGui
 import Chemin
 from FreeCAD import Base
 from pivy import coin
 App=FreeCAD
 Gui=FreeCADGui
-
-
 
 
 #
@@ -1478,7 +1476,8 @@ class RapportCalpinage1D:
 #
 #	Points 3D
 #
-		
+
+#Importe des Points 3D depuis un fichier texte
 def LectureFichierPoints3D():
 	ListePoints=[]
 	os.chdir(Chemin.CheminEchange(1))
@@ -1498,6 +1497,58 @@ def LectureFichierPoints3D():
 		print "Le fichier ", 'Points3D.txt', " est introuvable"
 	obFichier.close
 	return ListePoints	
+
+#Export une sélection d'objet vers un fichier "stp"
+def ExportSelVersStp():
+	Objets=FreeCADGui.Selection.getSelection()
+	Objets.sort(cmp=compName)
+	os.chdir(Chemin.CheminEchange(1))
+	ImportGui.export(Objets,"ExportWithName.stp")
+	return Objets
+	
+#Ajoute le nom des objets dans un fichier "stp"
+def AjoutNomDansStep(Obj):
+	os.chdir(Chemin.CheminEchange(1))
+	obFichier = open('ExportWithName.stp','r')
+	Nom=""
+	Filezz=obFichier.readlines()
+	File=Filezz[:]
+	#print File[0]
+	n=-1
+	cpt=0
+	test=0
+	for obj in Obj:
+		if len(obj.Shape.Vertexes)>1:
+			Test=1
+	if Test==1:
+		print "Tous les objets sélectionnés doivent être des points pour pouvoir exporter égalment le nom des points dans le fichier Step"
+	for ligne in File:
+		n=n+1
+		if ligne.find("PRODUCT(")>0:
+			text = ligne.split("'")
+			Nom = text[1]
+		if ligne.find("CARTESIAN_POINT")>0:
+			if ligne.find("CARTESIAN_POINT('',(0.E+000,0.E+000,0.E+000))")<0:
+				if Test==0:
+					temp=ligne.replace("''","'"+Obj[cpt].Name+"'")
+					File[n]=temp
+					cpt=cpt+1
+	obFichier.close
+	obFichier = open('ExportWithName.stp','w')
+	print "le fichier ExportWithName.stp est enregisté dans "+Chemin.CheminEchange(1) 
+	obFichier.writelines(File)			
+	obFichier.close
+		
+def compName(v1,v2):
+	if v1.Name<v2.Name:
+		return -1
+	elif v1.Name>v2.Name:
+		return 1
+	else:
+		return 0
+
+
+
 	
 #
 #	Pièces diverses
@@ -2245,6 +2296,23 @@ class MPoints3D:
   
 	def GetResources(self): 
 		return {'MenuText': 'ImportPoints3D', 'ToolTip': 'Import Points 3D'} 	   
+
+class MExportStpWithName:
+	def Activated(self): 
+		"Export Objet vers Step en ajoutant les noms"
+		
+		if FreeCAD.ActiveDocument==None:
+			print "Ouvrir un fichieréé pour pouvoir l'exporter"
+
+		Obj=ExportSelVersStp()
+		AjoutNomDansStep(Obj)
+			
+		App.ActiveDocument.recompute()
+		Gui.SendMsgToActiveView("ViewFit")
+  
+	def GetResources(self): 
+		return {'MenuText': 'ExportStpWithName', 'ToolTip': 'Export Objet vers Step en ajoutant les noms'} 	   
+
 		
 #	
 #	Palette
@@ -2293,6 +2361,7 @@ FreeCADGui.addCommand('M_InfoVolMasse', MInfoVolMasse())
 FreeCADGui.addCommand('M_OldFuse', MOldFuse())
 FreeCADGui.addCommand('M_MCalpinage1D', MCalpinage1D())
 FreeCADGui.addCommand('M_MPoints3D', MPoints3D())
+FreeCADGui.addCommand('M_MExportStpWithName', MExportStpWithName())
 FreeCADGui.addCommand('M_PlatineEurocode', MPlatineEurocode())
 FreeCADGui.addCommand('M_Palette', MPalette())
 
