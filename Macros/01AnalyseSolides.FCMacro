@@ -1022,7 +1022,9 @@ def ParamIouH(FaceSection):
 		b=edge2.Length
 		tw=l1*2
 		
-	return [h,b,tw]
+	PtAxe=CDG
+		
+	return [h,b,tw,PtAxe]
 
 def ParamCorniereAcier(FaceSection):
 	
@@ -1376,6 +1378,7 @@ def GetSection(Sol):
 		n=n+1	
 	#---------------
 	#Recherche des deux faces d'extrémitées
+	ExtremFacesNo=[]
 	ExtremFaces=[]
 	VertexesHighEdge=EdgesSol[No].Vertexes
 	n=0
@@ -1385,7 +1388,8 @@ def GetSection(Sol):
 			if abs(vertexe.distToShape(face)[0])<=tolerance:
 				nb=nb+1
 		if nb==1:			
-			ExtremFaces.append(n)
+			ExtremFaces.append(face)
+			ExtremFacesNo.append(n)
 			#~ Part.show(FacesSol[n])
 		n=n+1
 	#---------------
@@ -1394,7 +1398,7 @@ def GetSection(Sol):
 	n=0
 	for edge in ParallelEdges:
 		for vertexe in EdgesSol[edge].Vertexes:
-			if abs(vertexe.distToShape(FacesSol[ExtremFaces[0]])[0])<=tolerance:
+			if abs(vertexe.distToShape(FacesSol[ExtremFacesNo[0]])[0])<=tolerance:
 				if EdgesSol[edge].Length <= LowLength[0]:
 					LowLength[0]=EdgesSol[edge].Length
 					LowLength[1]=n
@@ -1435,7 +1439,7 @@ def GetSection(Sol):
 		
 	# Reste à implémanter le test de validation...
 	
-	return [Section,HighLength,TestBarre]
+	return [Section,HighLength,TestBarre,ExtremFaces]
 	
 def TypeSection(Section):
 	
@@ -1495,7 +1499,44 @@ def TypeSection(Section):
 	else:
 		Profil=0
 	return Profil
+
+def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax):
+	
+	#~ Part.show(Section)
+	#~ Part.show(ExtremFaces[0])
+	#~ Part.show(ExtremFaces[1])
+	#~ 
+	#~ Draft.makePoint(PtAxe.x,PtAxe.y,PtAxe.z)
+	face = Section.Faces[0]
+	surf = Section.Faces[0].Surface
+	V1=App.Vector(PtAxe.x,PtAxe.y,PtAxe.z)
+	m_uv = surf.parameter(V1)
+	u,v = m_uv[0], m_uv[1]
+	m_p1 = face.valueAt(u,v)
+	m_p2 = face.normalAt(u,v)
+	m_p3 = m_p1 + m_p2.normalize().multiply(LMax)
+	m_p4 = m_p1 + m_p2.normalize().multiply(-LMax)
+	Line=Part.makeLine((m_p3.x,m_p3.y,m_p3.z),(m_p4.x,m_p4.y,m_p4.z))
+	Pts=[]
+	for face in ExtremFaces:
+		Pt=face.section(Line)
+		#~ print Pt.Vertexes
+		#~ Part.show(face)
+		#~ Part.show(Line)
+		Pts.append(Pt)
+	#~ print Pts
+	#~ print Pts[0]
+	
+	X1B=Pts[0].Vertexes[0].X
+	Y1B=Pts[0].Vertexes[0].Y
+	Z1B=Pts[0].Vertexes[0].Z
+	X2B=Pts[1].Vertexes[0].X
+	Y2B=Pts[1].Vertexes[0].Y
+	Z2B=Pts[1].Vertexes[0].Z
+	AxeBarre=Part.makeLine((X1B,Y1B,Z1B),(X2B,Y2B,Z2B))
+	Part.show(AxeBarre)
 		
+	
 def ProfilIPEouHE(type):
 	
 	profIPE=ProfIPE()
@@ -1521,7 +1562,7 @@ def ProfilIPEouHE(type):
 	else :
 		TypeIPEouHE="h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
-	return TypeIPEouHE
+	return TypeIPEouHE,Param[3]
 	
 def ProfilIPN(type):
 	
@@ -1812,12 +1853,14 @@ sel=FreeCADGui.Selection.getSelection()
 if sel:
 	Sections=[]
 	TypeSections=[]
+	Axes=[]
 	for solide in sel:
 		Sections.append(GetSection(solide))
 	#~ print Sections	
 	for section in Sections:
 		if section[2]==True:
 			TypeSections.append(TypeSection(section[0]))
+			Axes.append(TraceAxeBArre(section[0],section[3],TypeSections[len(TypeSections)-1][1],section[1]))
 	#~ print TypeSections
 	#~ print Sections
 	n=0
@@ -1826,7 +1869,7 @@ if sel:
 			print "problème"
 		else :
 			print "-+-"
-			print str(TypeSections[n])
+			print str(TypeSections[n][0])
 			print "Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
 			print "-+-"
 		n=n+1
