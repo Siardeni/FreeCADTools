@@ -64,7 +64,6 @@ def Ln(Edges):
 	
 	Ln.sort(cmp=comp)
 	
-	
 	return Ln
 
 def LnCurves(Edges):
@@ -81,6 +80,21 @@ def LnCurves(Edges):
 	
 	
 	return Ln
+
+def Sn(Faces):
+	#Tri les faces par surfaces en excluant les arrêtes courbées
+	
+	Sn=[]
+	S=0
+	n=0
+	for face in Faces:
+		S=face.Area
+		Sn.append([n,S])
+		n=n+1
+	
+	Sn.sort(cmp=comp)
+	
+	return Sn
 
 
 #Copie Macro WorkFeature
@@ -1350,6 +1364,45 @@ def ParamUPAF(FaceSection):
 		
 	return h,b,ep
 
+def TypeSol(Solide):
+	
+	TypeSolide=1
+	
+	FacePlaque=0
+	
+	faces=Solide.Shape.Faces
+	edges=Solide.Shape.Edges
+	
+	TriFaces=Sn(faces)
+	TriEdges=Ln(edges)
+	
+	ListeEdgesBord=[]
+	#~ print TriFaces[0][1]
+	#~ print TriFaces[1][1]
+	#~ print TriFaces[2][1]
+	n=0
+	if TriFaces[0][1]-TriFaces[1][1]<=0.1:
+		if TriFaces[1][1]-TriFaces[2][1]>tolerance:
+			v0=faces[TriFaces[0][0]].normalAt(0,0)
+			for edge in edges:
+				ve=edge.tangentAt(0)
+				DeltaX=abs(v0.x)-abs(ve.x)
+				DeltaY=abs(v0.y)-abs(ve.y)
+				DeltaZ=abs(v0.z)-abs(ve.z)
+				if DeltaX<tolerance and DeltaY<tolerance and DeltaZ<tolerance:
+					ListeEdgesBord.append(n)
+					#~ Part.show(edge)
+					n=n+1
+					typeSol=2
+			NbEdFace1=len(Solide.Shape.Faces[TriFaces[0][0]].Edges)
+			NbEdFace2=len(Solide.Shape.Faces[TriFaces[1][0]].Edges)
+			NbEdBorddeCoupe=len(ListeEdgesBord)
+			print "----------"
+			if NbEdFace1+NbEdFace2+NbEdBorddeCoupe==len(edges):
+				TypeSolide=2
+				FacePlaque=faces[TriFaces[1][0]]
+			
+	return TypeSolide,FacePlaque#1:Poutre 2:Plaque(Platine)
 
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
@@ -1364,6 +1417,7 @@ def GetSection(Sol):
 			HighLength=edge.Length
 			No=n
 		n=n+1
+	#~ print HighLength
 	#---------------
 	#Recherche de toutes les arrêtes parallèles à la plus longue
 	ParallelEdges=[]
@@ -1376,6 +1430,8 @@ def GetSection(Sol):
 				ParallelEdges.append(n)
 				#~ Part.show(EdgesSol[n])
 		n=n+1	
+	#~ for ed in ParallelEdges:
+		#~ Part.show(EdgesSol[ed])
 	#---------------
 	#Recherche des deux faces d'extrémitées
 	ExtremFacesNo=[]
@@ -1392,6 +1448,9 @@ def GetSection(Sol):
 			ExtremFacesNo.append(n)
 			#~ Part.show(FacesSol[n])
 		n=n+1
+	#~ for face in ExtremFaces:
+		#~ Part.show(face)
+	
 	#---------------
 	#Recherche de l'arrête la plus courte aboutissant sur une face d'extrémité
 	LowLength=[HighLength,0]
@@ -1403,6 +1462,7 @@ def GetSection(Sol):
 					LowLength[0]=EdgesSol[edge].Length
 					LowLength[1]=n
 		n=n+1
+	
 	#~ Part.show(EdgesSol[ParallelEdges[LowLength[1]]])
 	
 	#---------------
@@ -1420,15 +1480,17 @@ def GetSection(Sol):
 	Vector_C = V1
 	
 	Plane_Normal = Vector_B - Vector_A
-    
+	
 	Vector_T=Vector_C
     
 	Plane_Point = Vector_T +  (Vector_C - Vector_T).multiply(0.5)
 			
-	Plane_face=Part.makePlane(HighLength,HighLength,Plane_Point, Plane_Normal )
+	Plane_face=Part.makePlane(HighLength*10,HighLength*10,Plane_Point, Plane_Normal )
+	
 	Plane_Center = Plane_face.CenterOfMass
 	Plane_Translate =  Plane_Point - Plane_Center
 	Plane_face.translate( Plane_Translate )
+	#~ Part.show(Plane_face)
 	#~ plane.Shape = Plane_face
 	#~ Part.show(Plane_face)
 
@@ -1832,10 +1894,10 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 	[8,2,8,[2,3,4],"Tube Carre Rectangle Alu",13],\
 	[12,1,8,[2,3],"UPAF acier",14]]
 	
-	print NbArretes
-	print ProfilOuvert
-	print NbArretesDroites
-	print NbLgArrDiff
+	#~ print NbArretes
+	#~ print ProfilOuvert
+	#~ print NbArretesDroites
+	#~ print NbLgArrDiff
 	
 	
 	TypeProfil=False
@@ -1854,26 +1916,40 @@ if sel:
 	Sections=[]
 	TypeSections=[]
 	Axes=[]
+	Plaques=[]
 	for solide in sel:
-		Sections.append(GetSection(solide))
-	#~ print Sections	
-	for section in Sections:
-		if section[2]==True:
-			TypeSections.append(TypeSection(section[0]))
-			Axes.append(TraceAxeBArre(section[0],section[3],TypeSections[len(TypeSections)-1][1],section[1]))
+		typeSol=TypeSol(solide)
+		if typeSol[0]==1:#Poutre
+			Sections.append(GetSection(solide))
+		if typeSol[0]==2:#Barre
+			Plaques.append(typeSol[1])
+	#~ print Sections
+	if len(Sections)>=1:
+		for section in Sections:
+			if section[2]==True:
+				TypeSections.append(TypeSection(section[0]))
+				Axes.append(TraceAxeBArre(section[0],section[3],TypeSections[len(TypeSections)-1][1],section[1]))
 	#~ print TypeSections
 	#~ print Sections
 	n=0
-	for section in Sections:
-		if TypeSections[n]==0:
-			print "problème"
-		else :
-			print "-+-"
-			print str(TypeSections[n][0])
-			print "Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
-			print "-+-"
-		n=n+1
-	
+	if len(Sections)>=1:
+		for section in Sections:
+			if TypeSections[n]==0:
+				print "problème"
+			else :
+				print "-+-"
+				print str(TypeSections[n][0])
+				print "Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
+				print "-+-"
+			n=n+1
+	if len(Plaques)>0:
+		Sn(Plaques)
+		for plaque in Plaques:
+			#déplacer la plaque vers XY déplacement via CDG puis via boundBox
+			#Identifier les plaque identiques
+			#Créer dxf en nommant le fichier avec l'épaisseur et la quantité
+			Part.show(plaque)
+		
 		
 else:
 	print "Sélectionner des pièces"		

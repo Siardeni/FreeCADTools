@@ -1519,8 +1519,8 @@ def AjoutNomDansStep(Obj):
 	test=0
 	for obj in Obj:
 		if len(obj.Shape.Vertexes)>1:
-			Test=1
-	if Test==1:
+			test=1
+	if test==1:
 		print "Tous les objets sélectionnés doivent être des points pour pouvoir exporter égalment le nom des points dans le fichier Step"
 	for ligne in File:
 		n=n+1
@@ -1529,7 +1529,7 @@ def AjoutNomDansStep(Obj):
 			Nom = text[1]
 		if ligne.find("CARTESIAN_POINT")>0:
 			if ligne.find("CARTESIAN_POINT('',(0.E+000,0.E+000,0.E+000))")<0:
-				if Test==0:
+				if test==0:
 					temp=ligne.replace("''","'"+Obj[cpt].Name+"'")
 					File[n]=temp
 					cpt=cpt+1

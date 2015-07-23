@@ -1,0 +1,75 @@
+# -*- coding:Utf-8 -*-
+#####################################################
+# Programme Python type                             #
+# Auteur : Nicolas Tuffereau, Angers, juin 2014     #
+# Licence : GPL                                     #
+#####################################################
+
+#####################################
+# Importation de fonctions externes :
+
+#from os import *
+import FreeCAD, FreeCADGui, Part, Draft, math, MeshPart, Mesh, Drawing, os,operator,time,ImportGui
+import FreeCADTools, Chemin
+#from PyQt4 import QtGui,QtCore
+from FreeCAD import Base
+App=FreeCAD
+Gui=FreeCADGui
+
+##################################
+# Défnition Class :	
+
+def ExportSelVersStp():
+	Objs=FreeCADGui.Selection.getSelection()
+	Objs.sort(cmp=compName)
+	ImportGui.export(Objs,"C:/Users/BE-3/Desktop/test.stp")
+	return Objs
+	
+def AjoutNomDansStep(Obj):
+	os.chdir('C:/Users/BE-3/Desktop')
+	obFichier = open('test.stp','r')
+	Nom=""
+	Filezz=obFichier.readlines()
+	File=Filezz[:]
+	#print File[0]
+	n=-1
+	cpt=0
+	test=0
+	for obj in Obj:
+		if len(obj.Shape.Vertexes)>1:
+			test=1
+	if test==1:
+		print "Tous les objets sélectionnés doivent être des points pour pouvoir exporter égalment le nom des points dans le fichier Step"
+	for ligne in File:
+		n=n+1
+		if ligne.find("PRODUCT(")>0:
+			text = ligne.split("'")
+			Nom = text[1]
+		if ligne.find("CARTESIAN_POINT")>0:
+			if ligne.find("CARTESIAN_POINT('',(0.E+000,0.E+000,0.E+000))")<0:
+				if test==0:
+					temp=ligne.replace("''","'"+Obj[cpt].Name+"'")
+					File[n]=temp
+					cpt=cpt+1
+	obFichier.close
+	obFichier = open('test.stp','w')
+	obFichier.writelines(File)			
+	obFichier.close
+		
+def compName(v1,v2):
+	if v1.Name<v2.Name:
+		return -1
+	elif v1.Name>v2.Name:
+		return 1
+	else:
+		return 0
+	
+if FreeCAD.ActiveDocument==None:
+	print "Ouvrir un fichieréé pour pouvoir l'exporter"
+
+Obj=ExportSelVersStp()
+AjoutNomDansStep(Obj)
+	
+App.ActiveDocument.recompute()
+Gui.SendMsgToActiveView("ViewFit")
+
