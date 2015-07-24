@@ -1076,8 +1076,12 @@ def ParamCorniereAcier(FaceSection):
 	Ep=Eps[0]
 	if Eps[0]-Eps[1]>tolerance:
 		"Problème"
-			
-	return L1,L2,Ep
+	
+	CDG=Section.Faces[0].CenterOfMass
+	
+	PtAxe=CDG
+	
+	return [L1,L2,Ep,PtAxe]
 	
 
 def ParamPlatCarre(FaceSection):
@@ -1105,7 +1109,9 @@ def ParamPlatCarre(FaceSection):
 		L1=t1
 		L2=t2
 		
-	return L1,L2,Type
+	PtAxe=CDG
+			
+	return [L1,L2,Type,PtAxe]
 		
 def ParamTe(FaceSection):
 	
@@ -1142,8 +1148,10 @@ def ParamTe(FaceSection):
 		C2=centerLinePoint(edgePlusPetite,0)
 		d1=C1.sub(C2)
 		h=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
+	
+	PtAxe=CDG
 		
-	return b,h
+	return [b,h,PtAxe]
 
 def ParamRond(FaceSection):
 	
@@ -1153,7 +1161,10 @@ def ParamRond(FaceSection):
 	
 	d=edge.Length/(2*math.pi)	
 	
-	return d
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
+	
+	return [d,PtAxe]
 
 def ParamTubeRond(FaceSection):
 	
@@ -1172,7 +1183,10 @@ def ParamTubeRond(FaceSection):
 	
 	#~ print d1,d2,ep
 	
-	return d1,d2,ep
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
+	
+	return [d1,d2,ep,PtAxe]
 
 def ParamTubeCarreRectangle(FaceSection):
 	
@@ -1220,8 +1234,11 @@ def ParamTubeCarreRectangle(FaceSection):
 		b=max(ListeCotes[0])
 	h=max(ListeCotes[0])
 	ep=min(ListeCotes[0])
+	
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
 		
-	return h,b,ep
+	return [h,b,ep,PtAxe]
 
 def ParamTubeCarreRectangleAlu(FaceSection):
 	
@@ -1269,9 +1286,10 @@ def ParamTubeCarreRectangleAlu(FaceSection):
 	
 	ep=dmin
 	
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
 	
-	
-	return h,b,ep
+	return [h,b,ep,PtAxe]
 
 
 def ParamUPE(FaceSection):
@@ -1286,7 +1304,10 @@ def ParamUPE(FaceSection):
 	b=ln[2][1]
 	tw=ln[len(ln)-1][1]
 	
-	return h,b,tw
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
+	
+	return [h,b,tw,PtAxe]
 	
 def ParamUPN(FaceSection):
 	
@@ -1307,7 +1328,10 @@ def ParamUPN(FaceSection):
 	
 	tw=C1.sub(C2).Length
 	
-	return h,b,tw
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
+	
+	return [h,b,tw,PtAxe]
 	
 def ParamLAlu(FaceSection):
 	
@@ -1348,7 +1372,10 @@ def ParamLAlu(FaceSection):
 		
 	ep=ListeArretEnContact[0][0]
 	
-	return h,b,ep
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
+	
+	return [h,b,ep,PtAxe]
 
 def ParamUPAF(FaceSection):
 	
@@ -1361,14 +1388,18 @@ def ParamUPAF(FaceSection):
 	b=10
 	ep=10
 	
+	CDG=Section.Faces[0].CenterOfMass
+	PtAxe=CDG
 		
-	return h,b,ep
+	return [h,b,ep,PtAxe]
 
 def TypeSol(Solide):
 	
 	TypeSolide=1
 	
 	FacePlaque=0
+	
+	Label=Solide.Label
 	
 	faces=Solide.Shape.Faces
 	edges=Solide.Shape.Edges
@@ -1381,7 +1412,7 @@ def TypeSol(Solide):
 	#~ print TriFaces[1][1]
 	#~ print TriFaces[2][1]
 	n=0
-	if TriFaces[0][1]-TriFaces[1][1]<=0.1:
+	if TriFaces[0][1]-TriFaces[1][1]<=0.1:#Essayer avec une plaque avec trous lamé, la plus petite possible pourvoir...
 		if TriFaces[1][1]-TriFaces[2][1]>tolerance:
 			v0=faces[TriFaces[0][0]].normalAt(0,0)
 			for edge in edges:
@@ -1402,11 +1433,12 @@ def TypeSol(Solide):
 				TypeSolide=2
 				FacePlaque=faces[TriFaces[1][0]]
 			
-	return TypeSolide,FacePlaque#1:Poutre 2:Plaque(Platine)
+	return TypeSolide,FacePlaque,Label#1:Poutre 2:Plaque(Platine)
 
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
 	FacesSol=Sol.Shape.Faces
+	Label=Sol.Label
 	#---------------
 	#Recherche de l'arrête la plus longue
 	HighLength=0.0
@@ -1501,7 +1533,7 @@ def GetSection(Sol):
 		
 	# Reste à implémanter le test de validation...
 	
-	return [Section,HighLength,TestBarre,ExtremFaces]
+	return [Section,HighLength,TestBarre,ExtremFaces,Label]
 	
 def TypeSection(Section):
 	
@@ -1551,7 +1583,7 @@ def TypeSection(Section):
 		elif Type[0][5]==10:
 			Profil=ProfilTubeCarreRectangle(Type)	
 		elif Type[0][5]==11:
-			Profil=Profil11(Type)	
+			Profil=ProfilLAlu(Type)	
 		elif Type[0][5]==12:
 			Profil=ProfilTouUAlu(Type)	
 		elif Type[0][5]==13:
@@ -1560,6 +1592,7 @@ def TypeSection(Section):
 			Profil=ProfilUPAFAcier(Type)	
 	else:
 		Profil=0
+	#~ print Profil
 	return Profil
 
 def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax):
@@ -1581,7 +1614,17 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax):
 	Line=Part.makeLine((m_p3.x,m_p3.y,m_p3.z),(m_p4.x,m_p4.y,m_p4.z))
 	Pts=[]
 	for face in ExtremFaces:
-		Pt=face.section(Line)
+		Part.show(face)
+		Plane_Point=face.valueAt(0,0)
+		Plane_Normal=face.normalAt(0,0)
+		Plane_face=Part.makePlane(LMax*10,LMax*10,Plane_Point, Plane_Normal )
+		Plane_Center = Plane_face.CenterOfMass
+		Plane_Translate =  Plane_Point - Plane_Center
+		Plane_face.translate( Plane_Translate )
+		
+		#~ Part.show(Plane_face)
+		
+		Pt=Plane_face.section(Line)
 		#~ print Pt.Vertexes
 		#~ Part.show(face)
 		#~ Part.show(Line)
@@ -1598,13 +1641,18 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax):
 	AxeBarre=Part.makeLine((X1B,Y1B,Z1B),(X2B,Y2B,Z2B))
 	Part.show(AxeBarre)
 		
+def RotAndMove(Face):
 	
-def ProfilIPEouHE(type):
+	FaceRAM=Face
+	
+	return FaceRAM
+	
+def ProfilIPEouHE(TypeProf):
 	
 	profIPE=ProfIPE()
 	profHE=ProfHE()
 	
-	Param=ParamIouH(type)
+	Param=ParamIouH(TypeProf)
 	
 	TypeIPE=0
 	TypeHE=0
@@ -1626,25 +1674,31 @@ def ProfilIPEouHE(type):
 	
 	return TypeIPEouHE,Param[3]
 	
-def ProfilIPN(type):
+def ProfilIPN(TypeProf):
 	
 	profIPN=ProfIPN()
 		
-	Param=ParamIouH(type)
+	Param=ParamIouH(TypeProf)
+	
+	Test=0
 	
 	TypeIPN="Poutre IPN "
 	
 	for mes in profIPN:
 		if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[3])<=tolerance:
-			TypeIPN=TypeIPN+str(int(mes[0]))
+			TypeIPN=TypeIPN+str(int(mes[1]))
+			Test=1
+	 
+	if Test==0:
+		TypeUPN="Poutre IPN "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
-	return TypeIPN
+	return TypeIPN,Param[3]
 
-def ProfilUPN(type):
+def ProfilUPN(TypeProf):
 
 	profUPN=ProfUPN()
 	
-	Param=ParamUPN(type)
+	Param=ParamUPN(TypeProf)
 	
 	Test=0
 	
@@ -1657,13 +1711,13 @@ def ProfilUPN(type):
 		TypeUPN="Poutre UPN "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
 	
-	return TypeUPN
+	return TypeUPN,Param[3]
 	
-def ProfilUPE(type):
+def ProfilUPE(TypeProf):
 	
 	profUPE=ProfUPE()
 	
-	Param=ParamUPE(type)
+	Param=ParamUPE(TypeProf)
 	
 	Test=0
 	
@@ -1676,14 +1730,14 @@ def ProfilUPE(type):
 		TypeUPE="Poutre UPE "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
 	
-	return TypeUPE
+	return TypeUPE,Param[3]
 	
-def ProfilCorniere(type):
+def ProfilCorniere(TypeProf):
 
 	profCorniereEgaleAcier=ProfCorniereEgaleAcier()
 	profCorniereInegaleAcier=ProfCorniereInegaleAcier()
 
-	Param=ParamCorniereAcier(type)
+	Param=ParamCorniereAcier(TypeProf)
 
 	TypeCorniere="Profil Cornière "
 	Test=0
@@ -1704,14 +1758,14 @@ def ProfilCorniere(type):
 	if Test==0:
 		TypeCorniere=TypeCorniere+"h="+str(Param[0])+" b="+str(Param[1])+" t="+str(Param[2])+" (pas en catalogue...)"
 
-	return TypeCorniere
+	return TypeCorniere,Param[3]
 
-def ProfilPlatCarre(type):	
+def ProfilPlatCarre(TypeProf):	
 
 	profPlat=ProfPlat()
 	profCarre=ProfCarre()
 	
-	Param=ParamPlatCarre(type)
+	Param=ParamPlatCarre(TypeProf)
 	
 	Test=0
 	
@@ -1741,13 +1795,13 @@ def ProfilPlatCarre(type):
 	if Test==0:
 		TypePlatCarre="Profil "+str(Param[2])+" : "+str(Param[0])+" x "+str(Param[1])
 
-	return TypePlatCarre
+	return TypePlatCarre,Param[3]
 
-def ProfilTe(type):
+def ProfilTe(TypeProf):
 
 	profTe=ProfTe()
 	
-	Param=ParamTe(type)
+	Param=ParamTe(TypeProf)
 	
 	Test=0
 	
@@ -1764,13 +1818,13 @@ def ProfilTe(type):
 	if Test==0:
 		TypeTe=TypeTe+str(mes[0])+" x "+str(mes[1])+" (pas en catalogue...)"
 
-	return TypeTe
+	return TypeTe,Param[2]
 
-def ProfilRond(type):
+def ProfilRond(TypeProf):
 
 	profRond=ProfRond()
 
-	Param=ParamRond(type)
+	Param=ParamRond(TypeProf)
 	
 	TypeRond="Profil Rond Diamètre "
 	
@@ -1778,20 +1832,20 @@ def ProfilRond(type):
 
 	for mes in profRond:
 		
-		if abs(Param-mes[1])<=tolerance :
+		if abs(Param[0]-mes[1])<=tolerance :
 			TypeRond=TypeRond+str(mes[1])
 			Test=1
 		 
 	if Test==0:
-		TypeRond=TypeRond+str(Param)+" (pas en catalogue...)"
+		TypeRond=TypeRond+str(Param[0])+" (pas en catalogue...)"
 
-	return TypeRond
+	return TypeRond,Param[1]
 
-def ProfilTubeRond(type):
+def ProfilTubeRond(TypeProf):
 	
 	profTubeRond=ProfTubeRond()
 	
-	Param=ParamTubeRond(type)
+	Param=ParamTubeRond(TypeProf)
 	
 	Test=0
 	
@@ -1809,15 +1863,15 @@ def ProfilTubeRond(type):
 		TypeTubeRond="Profil Tube Rond Diamètre "+str(Param[0])+", épaisseur "+str(Param[2])+"\
 , Diamètre intérieur "+str(Param[1])+"\n(pas en catalogue...)"
 
-	return TypeTubeRond
+	return TypeTubeRond,Param[3]
 
-def ProfilTubeCarreRectangle(type):
+def ProfilTubeCarreRectangle(TypeProf):
 
 	#~ profTubeCarre=ProfTubeCarre()
 	#~ 
 	#~ profTubeRectangle=ProfTubeRectangle()
 	
-	Param=ParamTubeCarreRectangle(type)
+	Param=ParamTubeCarreRectangle(TypeProf)
 		
 	Test=0
 	
@@ -1828,11 +1882,11 @@ def ProfilTubeCarreRectangle(type):
 			TypeTubeCarreRectangle="Profil Tube rectangle "
 		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[1])+" x "+str(Param[0])+", épaisseur : "+str(Param[2])
 
-	return TypeTubeCarreRectangle
+	return TypeTubeCarreRectangle,Param[3]
 
-def Profil11(type):
+def ProfilLAlu(TypeProf):
 	
-	Param=ParamLAlu(type)
+	Param=ParamLAlu(TypeProf)
 		
 	Test=0
 	
@@ -1843,17 +1897,17 @@ def Profil11(type):
 			TypeLAlu="Profil cornière aluminium inégale "
 		TypeLAlu=TypeLAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 	
-	return TypeLAlu
+	return TypeLAlu,Param[3]
 
-def ProfilTouUAlu(type):
+def ProfilTouUAlu(TypeProf):
 	
 	TypeTouUAlu="Té ou U Alu (Reste à faire...) "
 	
-	return TypeTouUAlu
+	return TypeTouUAlu,Param[3]
 
-def ProfilTubeCarreRectangleAlu(type):
+def ProfilTubeCarreRectangleAlu(TypeProf):
 	
-	Param=ParamTubeCarreRectangleAlu(type)
+	Param=ParamTubeCarreRectangleAlu(TypeProf)
 		
 	Test=0
 	
@@ -1864,18 +1918,18 @@ def ProfilTubeCarreRectangleAlu(type):
 			TypeTubeCarreRectangleAlu="Profil Tube rectangle aluminium "
 		TypeTubeCarreRectangleAlu=TypeTubeCarreRectangleAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 
-	return TypeTubeCarreRectangleAlu
+	return TypeTubeCarreRectangleAlu,Param[3]
 	
-def ProfilUPAFAcier(type):
+def ProfilUPAFAcier(TypeProf):
 	
-	Param=ParamUPAF(type)
+	Param=ParamUPAF(TypeProf)
 		
 	Test=0
 	
 	if Test==0:
 		TypeUPAFAcier="En travaux Profil UPAF (coulisse) "+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 		
-	return TypeUPAFAcier
+	return TypeUPAFAcier,Param[3]
 		
 def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 	
@@ -1893,11 +1947,12 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 	[8,1,8,[3,4,5],"Profil U T Alu",12],\
 	[8,2,8,[2,3,4],"Tube Carre Rectangle Alu",13],\
 	[12,1,8,[2,3],"UPAF acier",14]]
-	
+	#~ 
 	#~ print NbArretes
 	#~ print ProfilOuvert
 	#~ print NbArretesDroites
 	#~ print NbLgArrDiff
+	#~ 
 	
 	
 	TypeProfil=False
@@ -1906,11 +1961,29 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 			for n in f[3]:
 				if NbLgArrDiff==n:
 					TypeProfil=f
+					
 	return TypeProfil
 	
 oldDocumentObjects=App.ActiveDocument.Objects
 	
-sel=FreeCADGui.Selection.getSelection()
+Selection=FreeCADGui.Selection.getSelection()
+sel=[]
+cpt=0
+for Obj in Selection:
+	if cpt==0:
+		sel.append(Obj)
+	else:
+		Test=0
+		cpt2=0
+		for Obj2 in Selection:
+			if cpt!=cpt2: 
+				if Obj2==Obj:
+					Test=Test+1
+			cpt2=cpt2+1
+		if Test<2:	
+			sel.append(Obj)
+			
+	cpt=cpt+1
 
 if sel:
 	Sections=[]
@@ -1919,6 +1992,8 @@ if sel:
 	Plaques=[]
 	for solide in sel:
 		typeSol=TypeSol(solide)
+		#~ print solide.Label
+			
 		if typeSol[0]==1:#Poutre
 			Sections.append(GetSection(solide))
 		if typeSol[0]==2:#Barre
@@ -1928,7 +2003,13 @@ if sel:
 		for section in Sections:
 			if section[2]==True:
 				TypeSections.append(TypeSection(section[0]))
-				Axes.append(TraceAxeBArre(section[0],section[3],TypeSections[len(TypeSections)-1][1],section[1]))
+				#[Section,HighLength,TestBarre,ExtremFaces]
+				sect=section[0]
+				ExtFaces=section[3]
+				HighLength=section[1]
+				#~ print TypeSections
+				PointAxe=TypeSections[len(TypeSections)-1][1]
+				Axes.append(TraceAxeBArre(sect,ExtFaces,PointAxe,HighLength))
 	#~ print TypeSections
 	#~ print Sections
 	n=0
@@ -1937,16 +2018,18 @@ if sel:
 			if TypeSections[n]==0:
 				print "problème"
 			else :
-				print "-+-"
-				print str(TypeSections[n][0])
-				print "Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
-				print "-+-"
+				print section[4]
+				print str(TypeSections[n][0])+" Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
 			n=n+1
-	if len(Plaques)>0:
+	if len(Plaques)>=1:
 		Sn(Plaques)
 		for plaque in Plaques:
+			RotAndMove(plaque)
 			#déplacer la plaque vers XY déplacement via CDG puis via boundBox
+			#http://www.freecadweb.org/wiki/index.php?title=Placement
+			#Rapatrier le nom du LAbel de la plaque
 			#Identifier les plaque identiques
+			#Identifier et positionner les trous de perçages et les oblongs
 			#Créer dxf en nommant le fichier avec l'épaisseur et la quantité
 			Part.show(plaque)
 		
