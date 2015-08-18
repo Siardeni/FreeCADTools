@@ -25,7 +25,7 @@
 # Importation de fonctions externes :
 
 #froMos import *
-import FreeCAD, FreeCADGui, Part, Draft, math, MeshPart, Mesh, Drawing, DraftGeomUtils, WorkingPlane
+import FreeCAD, FreeCADGui, Part, Draft, math, MeshPart, Mesh, Drawing, DraftGeomUtils, WorkingPlane, importDXF
 from FreeCAD import Base
 App=FreeCAD
 Gui=FreeCADGui
@@ -1451,18 +1451,67 @@ def GetSection(Sol):
 		n=n+1
 	#~ print HighLength
 	#---------------
+	#Création d'un plan normal à l'arrête la plus longue
+	
+	NbPLans = 5
+	edgeHighLength=EdgesSol[No]
+	
+	#~ Part.show(edgeHighLength)
+	
+	SurfSect=0.0
+	Param=edgeHighLength.LastParameter-edgeHighLength.FirstParameter
+	PasParam=Param/NbPLans
+	for n in range(NbPLans):
+		n=n*1.0
+		val=edgeHighLength.FirstParameter+n*PasParam
+		PtCenter=edgeHighLength.valueAt(val)
+		VectDir=edgeHighLength.tangentAt(val)
+		PlaneCenter=Part.makePlane(HighLength*10,HighLength*10,PtCenter, VectDir )
+		Plane_Center = PlaneCenter.CenterOfMass
+		Plane_Translate =  PtCenter - Plane_Center
+		PlaneCenter.translate( Plane_Translate )
+		#~ Part.show(PlaneCenter)
+		Sect=PlaneCenter.common(Sol.Shape)
+		if Sect.Area-SurfSect>tolerance:
+			SurfSect=Sect.Area
+			Section=Sect
+			#~ Part.show(Sect)
+		n=n+1
+	#~ Part.show(Section)
+	#~ Part.show(PlaneCenter)
+	
+	#---------------
 	#Recherche de toutes les arrêtes parallèles à la plus longue
+	#Dans le cas d'un profil courbé, renvoi 0
+	###### 
 	ParallelEdges=[]
-	n=0
-	VB=(EdgesSol[No].Curve.EndPoint -EdgesSol[No].Curve.StartPoint).normalize()
-	for edge in EdgesSol:
-		if edge.curvatureAt(0)==0.0:
-			VA = (edge.Curve.EndPoint - edge.Curve.StartPoint).normalize()
-			if abs((VA.cross(VB)).Length) <= tolerance:
-				ParallelEdges.append(n)
-				#~ Part.show(EdgesSol[n])
-		n=n+1	
-	#~ for ed in ParallelEdges:
+	if EdgesSol[No].curvatureAt(0.0)<=tolerance:
+		n=0
+		VB=(EdgesSol[No].Curve.EndPoint -EdgesSol[No].Curve.StartPoint).normalize()
+		for edge in EdgesSol:
+			if edge.curvatureAt(0)==0.0:
+				VA = (edge.Curve.EndPoint - edge.Curve.StartPoint).normalize()
+				if abs((VA.cross(VB)).Length) <= tolerance:
+					ParallelEdges.append(edge)
+					#~ Part.show(EdgesSol[n])
+			n=n+1	
+	else :
+		n=0
+		Dir1=EdgesSol[No].Curve.Axis*HighLength
+		Dir2=EdgesSol[No].Curve.Axis*(-HighLength)
+		Pt=EdgesSol[No].Curve.Center
+		Dir1=Pt+Dir1
+		Dir2=Pt+Dir2
+		Axe=Part.makeLine(Dir1,Dir2)
+		for edge in EdgesSol:
+			if edge.curvatureAt(0.0)>=tolerance:
+				if edge.Curve.Center.distanceToLine(Dir1,Dir2)<=tolerance:
+					ParallelEdges.append(edge)
+					#~ Part.show(edge)
+			n=n+1
+		
+		#Profil courbé
+		#~ for ed in ParallelEdges:
 		#~ Part.show(EdgesSol[ed])
 	#---------------
 	#Recherche des deux faces d'extrémitées
@@ -1485,15 +1534,15 @@ def GetSection(Sol):
 	
 	#---------------
 	#Recherche de l'arrête la plus courte aboutissant sur une face d'extrémité
-	LowLength=[HighLength,0]
-	n=0
-	for edge in ParallelEdges:
-		for vertexe in EdgesSol[edge].Vertexes:
-			if abs(vertexe.distToShape(FacesSol[ExtremFacesNo[0]])[0])<=tolerance:
-				if EdgesSol[edge].Length <= LowLength[0]:
-					LowLength[0]=EdgesSol[edge].Length
-					LowLength[1]=n
-		n=n+1
+	#~ LowLength=[HighLength,0]
+	#~ n=0
+	#~ for edge in ParallelEdges:
+		#~ for vertexe in EdgesSol[edge].Vertexes:
+			#~ if abs(vertexe.distToShape(FacesSol[ExtremFacesNo[0]])[0])<=tolerance:
+				#~ if EdgesSol[edge].Length <= LowLength[0]:
+					#~ LowLength[0]=EdgesSol[edge].Length
+					#~ LowLength[1]=n
+		#~ n=n+1
 	
 	#~ Part.show(EdgesSol[ParallelEdges[LowLength[1]]])
 	
@@ -1503,37 +1552,37 @@ def GetSection(Sol):
 	#section.... reste à chercher (piste : toutes les faces coupé doivent donné un résultat unique...)
 	#Encore une fois fortement inspiré de la macro WorkFeature
 	
-	LowEdge=EdgesSol[ParallelEdges[LowLength[1]]]
-	V1=centerLinePoint(LowEdge,0)
+	#~ LowEdge=EdgesSol[ParallelEdges[LowLength[1]]]
+	#~ V1=centerLinePoint(LowEdge,0)
 	#~ Part.show(LowEdge)
 	
-	Vector_A = LowEdge.valueAt( 0.0 )
-	Vector_B = LowEdge.valueAt( LowEdge.Length )
-	Vector_C = V1
-	
-	Plane_Normal = Vector_B - Vector_A
-	
-	Vector_T=Vector_C
-    
-	Plane_Point = Vector_T +  (Vector_C - Vector_T).multiply(0.5)
-			
-	Plane_face=Part.makePlane(HighLength*10,HighLength*10,Plane_Point, Plane_Normal )
-	
-	Plane_Center = Plane_face.CenterOfMass
-	Plane_Translate =  Plane_Point - Plane_Center
-	Plane_face.translate( Plane_Translate )
+	#~ Vector_A = LowEdge.valueAt( 0.0 )
+	#~ Vector_B = LowEdge.valueAt( LowEdge.Length )
+	#~ Vector_C = V1
+	#~ 
+	#~ Plane_Normal = Vector_B - Vector_A
+	#~ 
+	#~ Vector_T=Vector_C
+    #~ 
+	#~ Plane_Point = Vector_T +  (Vector_C - Vector_T).multiply(0.5)
+			#~ 
+	#~ Plane_face=Part.makePlane(HighLength*10,HighLength*10,Plane_Point, Plane_Normal )
+	#~ 
+	#~ Plane_Center = Plane_face.CenterOfMass
+	#~ Plane_Translate =  Plane_Point - Plane_Center
+	#~ Plane_face.translate( Plane_Translate )
 	#~ Part.show(Plane_face)
 	#~ plane.Shape = Plane_face
 	#~ Part.show(Plane_face)
 
-	Section=Plane_face.common(Sol.Shape)
+	#~ Section=Plane_face.common(Sol.Shape)
 	#~ Part.show(Section)
 	if len(Section.Faces)==1:
 		TestBarre=True
 		
 	# Reste à implémanter le test de validation...
 	
-	return [Section,HighLength,TestBarre,ExtremFaces,Label]
+	return [Section,HighLength,TestBarre,ExtremFaces,Label,ParallelEdges]
 	
 def TypeSection(Section):
 	
@@ -1595,7 +1644,7 @@ def TypeSection(Section):
 	#~ print Profil
 	return Profil
 
-def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax):
+def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 	
 	#~ Part.show(Section)
 	#~ Part.show(ExtremFaces[0])
@@ -1609,42 +1658,128 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax):
 	u,v = m_uv[0], m_uv[1]
 	m_p1 = face.valueAt(u,v)
 	m_p2 = face.normalAt(u,v)
-	m_p3 = m_p1 + m_p2.normalize().multiply(LMax)
-	m_p4 = m_p1 + m_p2.normalize().multiply(-LMax)
-	Line=Part.makeLine((m_p3.x,m_p3.y,m_p3.z),(m_p4.x,m_p4.y,m_p4.z))
+	if parallelEdges[0].curvatureAt(0.0)<=tolerance:
+		m_p3 = m_p1 + m_p2.normalize().multiply(LMax)
+		m_p4 = m_p1 + m_p2.normalize().multiply(-LMax)
+		Courbe=Part.makeLine((m_p3.x,m_p3.y,m_p3.z),(m_p4.x,m_p4.y,m_p4.z))
+	else:
+		Vaxis=parallelEdges[0].Curve.Axis
+		Vcenter=parallelEdges[0].Curve.Center
+		PtDir1=Vcenter+Vaxis*LMax
+		PtDir2=Vcenter-Vaxis*LMax
+		AxeCentre=Part.makeLine(PtDir1,PtDir2)
+		Rayon=V1.distanceToLine(PtDir1,PtDir2)
+		Pnt=V1.projectToLine(Vcenter,Vaxis)
+		Courbe=Part.makeCircle(Rayon,Pnt,Vaxis)
+		Part.show(Courbe)
+	
 	Pts=[]
+		
 	for face in ExtremFaces:
-		Part.show(face)
+		#~ Part.show(face)
 		Plane_Point=face.valueAt(0,0)
 		Plane_Normal=face.normalAt(0,0)
 		Plane_face=Part.makePlane(LMax*10,LMax*10,Plane_Point, Plane_Normal )
 		Plane_Center = Plane_face.CenterOfMass
 		Plane_Translate =  Plane_Point - Plane_Center
 		Plane_face.translate( Plane_Translate )
-		
-		#~ Part.show(Plane_face)
-		
-		Pt=Plane_face.section(Line)
+		Pt=Plane_face.section(Courbe)
 		#~ print Pt.Vertexes
 		#~ Part.show(face)
 		#~ Part.show(Line)
 		Pts.append(Pt)
-	#~ print Pts
-	#~ print Pts[0]
-	
-	X1B=Pts[0].Vertexes[0].X
-	Y1B=Pts[0].Vertexes[0].Y
-	Z1B=Pts[0].Vertexes[0].Z
-	X2B=Pts[1].Vertexes[0].X
-	Y2B=Pts[1].Vertexes[0].Y
-	Z2B=Pts[1].Vertexes[0].Z
-	AxeBarre=Part.makeLine((X1B,Y1B,Z1B),(X2B,Y2B,Z2B))
-	Part.show(AxeBarre)
+
+	if parallelEdges[0].curvatureAt(0.0)<=tolerance:
+		X1B=Pts[0].Vertexes[0].X
+		Y1B=Pts[0].Vertexes[0].Y
+		Z1B=Pts[0].Vertexes[0].Z
+		X2B=Pts[1].Vertexes[0].X
+		Y2B=Pts[1].Vertexes[0].Y
+		Z2B=Pts[1].Vertexes[0].Z
+		CourbeBarre=Part.makeLine((X1B,Y1B,Z1B),(X2B,Y2B,Z2B))
+	else :
+		CourbeBarre=0
+
+
+	return CourbeBarre
 		
 def RotAndMove(Face):
 	
 	FaceRAM=Face
 	
+	Norm=Face.normalAt(0,0)
+	#~ print Norm
+	
+	L=0.0
+	n=0
+	nLmax=0
+	for edge in Face.Edges:
+		if edge.Length-L>tolerance:
+			L=edge.Length
+			nLmax=n
+		n=n+1
+					
+	Vect=Face.Edges[nLmax].tangentAt(0)
+	Ptx=Face.Edges[nLmax].Vertexes[0].X
+	Pty=Face.Edges[nLmax].Vertexes[0].Y
+	Ptz=Face.Edges[nLmax].Vertexes[0].Z
+	Pt=Base.Vector(Ptx,Pty,Ptz)
+	#~ print Vect
+	V=Base.Vector(0.0,0.0,0.0)
+	VX=Base.Vector(1.0,0.0,0.0)
+	VZ=Base.Vector(0.0,0.0,1.0)
+	
+	
+	if abs(Norm.x)-abs(VZ.x)<tolerance and abs(Norm.y)-abs(VZ.y)<tolerance and abs(Norm.z)-abs(VZ.z)<tolerance:
+		Alpha=-math.degrees(VX.getAngle(Vect))
+		Beta=0.0
+		Gamma=0.0
+	else :
+		#~ print VZ
+		#~ print Norm
+		
+		N=Norm.cross(VZ)
+		#~ print N
+		Alpha=-90.0+math.degrees(N.getAngle(VX))
+		#~ print Alpha
+		Beta=-math.degrees(Norm.getAngle(VZ))
+		#~ print Beta
+		Gamma=-math.degrees(N.getAngle(Vect))+90.0
+		#~ print Gamma
+		#~ Gamma=0.0
+		
+		#~ Alpha=-00.0
+		#~ Beta=-00.0
+		#~ Alpha=10.0
+		
+		#~ P1=Part.makePlane(100.0,100.0,V,Norm)
+		#~ P2=Part.makePlane(100.0,100.0,V,VZ)
+		#~ Part.show(P1)
+		#~ Part.show(P2)
+		#~ P3=Part.makePlane(100.0,100.0,V,N)
+		#~ Part.show(P3)
+		
+	pos=V
+	center=Pt
+	rot0=FreeCAD.Rotation(0.0,0.0,0.0)
+	rot1=FreeCAD.Rotation(Alpha,0.0,0.0)
+	rot2=FreeCAD.Rotation(0.0,Beta,0.0)
+	rot3=FreeCAD.Rotation(Gamma,0.0,0.0)
+	
+	FaceRAM.Placement=App.Placement(pos, rot1, center).multiply(FaceRAM.Placement)
+	FaceRAM.Placement=App.Placement(pos, rot2, center).multiply(FaceRAM.Placement)
+	FaceRAM.Placement=App.Placement(pos, rot3, center).multiply(FaceRAM.Placement)
+	
+	FaceRAM.BoundBox
+	
+	mov1x=-FaceRAM.BoundBox.XMin
+	mov1y=-FaceRAM.BoundBox.YMin
+	mov1z=-FaceRAM.BoundBox.ZMin
+	
+	mov1=Base.Vector(mov1x,mov1y,mov1z)
+	FaceRAM.Placement=App.Placement(mov1, rot0, center).multiply(FaceRAM.Placement)
+	
+		
 	return FaceRAM
 	
 def ProfilIPEouHE(TypeProf):
@@ -1961,7 +2096,7 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 			for n in f[3]:
 				if NbLgArrDiff==n:
 					TypeProfil=f
-					
+	
 	return TypeProfil
 	
 oldDocumentObjects=App.ActiveDocument.Objects
@@ -2003,13 +2138,16 @@ if sel:
 		for section in Sections:
 			if section[2]==True:
 				TypeSections.append(TypeSection(section[0]))
-				#[Section,HighLength,TestBarre,ExtremFaces]
+				#[Section,HighLength,TestBarre,ExtremFaces,Label,ParallelEdges]
 				sect=section[0]
 				ExtFaces=section[3]
 				HighLength=section[1]
+				ParallelEdges=section[5]
 				#~ print TypeSections
 				PointAxe=TypeSections[len(TypeSections)-1][1]
-				Axes.append(TraceAxeBArre(sect,ExtFaces,PointAxe,HighLength))
+				Axes.append(TraceAxeBArre(sect,ExtFaces,PointAxe,HighLength,ParallelEdges))
+		for axe in Axes:
+			Part.show(axe)
 	#~ print TypeSections
 	#~ print Sections
 	n=0
@@ -2025,8 +2163,7 @@ if sel:
 		Sn(Plaques)
 		for plaque in Plaques:
 			RotAndMove(plaque)
-			#déplacer la plaque vers XY déplacement via CDG puis via boundBox
-			#http://www.freecadweb.org/wiki/index.php?title=Placement
+			
 			#Rapatrier le nom du LAbel de la plaque
 			#Identifier les plaque identiques
 			#Identifier et positionner les trous de perçages et les oblongs
@@ -2036,5 +2173,6 @@ if sel:
 		
 else:
 	print "Sélectionner des pièces"		
+
 
 
