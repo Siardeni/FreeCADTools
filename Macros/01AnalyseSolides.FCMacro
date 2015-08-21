@@ -18,6 +18,7 @@
 # Identifier tube cintrés
 # Catalogue Tubes carrés et rectangles alu et acier
 
+
 #--------------------
 
 
@@ -26,6 +27,7 @@
 
 #froMos import *
 import FreeCAD, FreeCADGui, Part, Draft, math, MeshPart, Mesh, Drawing, DraftGeomUtils, WorkingPlane, importDXF
+import DraftVecUtils
 from FreeCAD import Base
 App=FreeCAD
 Gui=FreeCADGui
@@ -82,7 +84,7 @@ def LnCurves(Edges):
 	return Ln
 
 def Sn(Faces):
-	#Tri les faces par surfaces en excluant les arrêtes courbées
+	#Tri les faces par surfaces
 	
 	Sn=[]
 	S=0
@@ -1405,7 +1407,8 @@ def TypeSol(Solide):
 	edges=Solide.Shape.Edges
 	
 	TriFaces=Sn(faces)
-	TriEdges=Ln(edges)
+	TriEdges=LnCurves(edges)
+	#~ print TriEdges
 	
 	ListeEdgesBord=[]
 	#~ print TriFaces[0][1]
@@ -1423,17 +1426,20 @@ def TypeSol(Solide):
 				if DeltaX<tolerance and DeltaY<tolerance and DeltaZ<tolerance:
 					ListeEdgesBord.append(n)
 					#~ Part.show(edge)
-					n=n+1
-					typeSol=2
+					#~ print ListeEdgesBord
+				n=n+1
 			NbEdFace1=len(Solide.Shape.Faces[TriFaces[0][0]].Edges)
 			NbEdFace2=len(Solide.Shape.Faces[TriFaces[1][0]].Edges)
 			NbEdBorddeCoupe=len(ListeEdgesBord)
-			print "----------"
 			if NbEdFace1+NbEdFace2+NbEdBorddeCoupe==len(edges):
-				TypeSolide=2
-				FacePlaque=faces[TriFaces[1][0]]
-			
-	return TypeSolide,FacePlaque,Label#1:Poutre 2:Plaque(Platine)
+				TriEdgeGrdFace=LnCurves(Solide.Shape.Faces[TriFaces[0][0]].Edges)
+				LMax=TriEdgeGrdFace[0][1]
+				Area=Solide.Shape.Faces[TriFaces[0][0]].Area
+				lmin=Area/LMax
+				if LMax/lmin<30.0: #Critère pour savoir si on est sur un plat ou sur une plaque
+					TypeSolide=2
+	
+	return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord#1:Poutre 2:Plaque(Platine)
 
 def GetSection(Sol):
 	EdgesSol=Sol.Shape.Edges
@@ -1583,6 +1589,70 @@ def GetSection(Sol):
 	# Reste à implémanter le test de validation...
 	
 	return [Section,HighLength,TestBarre,ExtremFaces,Label,ParallelEdges]
+
+def GetInfoPlaque(Pla,Face,EdgesEdge):
+	
+	Name=Pla.Label
+	
+	faces=Pla.Shape.Faces
+	edges=Pla.Shape.Edges	
+	L=[]
+	LSomme=0.0
+	for edge in EdgesEdge:
+		#~ Part.show(edges[edge])
+		l=edges[edge].Length
+		L.append(l)
+		LSomme=LSomme+l
+	Lmoy=LSomme/len(L)
+	#~ print Lmoy
+	
+	#Compte les trous...
+	WireOfDecoupe=[] #Liste des wire des trous et des oblongs
+	#on commence par enlever la wire du contour principale 
+	AreaMax=0
+	n=0
+	for wire in Face.Wires:
+		face=Part.Face(wire)
+		if face.Area>AreaMax:
+			AreaMax=face.Area
+			WireExt=n
+		n=n+1	
+	n=0
+	for wire in Face.Wires:
+		if WireExt<>n:
+			WireOfDecoupe.append(wire)
+		n=n+1
+	WireOfTrous=[]
+	WireOfOblongs=[]
+	for wire in WireOfDecoupe:
+		cptLigne=0 #compteur d'arrête droite pour exclure tous les perçages plus compliqués que des trous oblongs.
+		cptArc=0 #compteur d'arrête droite pour exclure tous les perçages plus compliqués que des trous oblongs.
+		for edge in wire.Edges:
+			print edge.curvatureAt(0.0)
+			if edge.curvatureAt(0.0)<=tolerance:
+				cptLigne=cptLigne+1
+			else:
+				cptArc=cptArc+1
+		print "cpt"
+		print cptLigne
+		print cptArc
+		print "------"
+		if cptArc==1 or cptArc ==2:
+			if cptLigne==0:
+				WireOfTrous.append(wire)
+			else:
+				WireOfOblongs.append(wire)
+	for wire in WireOfTrous:
+		print wire.Edges[0].Curve.Radius
+		
+		# To be continued...
+			
+	FacePlaque=Face
+	Thickness=Lmoy
+	Holes=0
+
+	return FacePlaque,Name,Thickness,Holes
+
 	
 def TypeSection(Section):
 	
@@ -1667,14 +1737,14 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 		Vcenter=parallelEdges[0].Curve.Center
 		PtDir1=Vcenter+Vaxis*LMax
 		PtDir2=Vcenter-Vaxis*LMax
-		AxeCentre=Part.makeLine(PtDir1,PtDir2)
 		Rayon=V1.distanceToLine(PtDir1,PtDir2)
-		Pnt=V1.projectToLine(Vcenter,Vaxis)
+		Diff=App.Vector()
+		Diff.projectToLine(V1-Vcenter,Vaxis)
+		Pnt=V1+Diff
 		Courbe=Part.makeCircle(Rayon,Pnt,Vaxis)
-		Part.show(Courbe)
-	
+		#~ Part.show(Courbe)
 	Pts=[]
-		
+	#~ print ExtremFaces
 	for face in ExtremFaces:
 		#~ Part.show(face)
 		Plane_Point=face.valueAt(0,0)
@@ -1683,12 +1753,26 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 		Plane_Center = Plane_face.CenterOfMass
 		Plane_Translate =  Plane_Point - Plane_Center
 		Plane_face.translate( Plane_Translate )
-		Pt=Plane_face.section(Courbe)
-		#~ print Pt.Vertexes
+		points=Plane_face.section(Courbe)
 		#~ Part.show(face)
-		#~ Part.show(Line)
+		
+		dist=LMax/2
+		#~ print dist
+		for point in points.Vertexes:
+			#~ print point.Point
+			#~ print Plane_Point
+			L=point.Point.distanceToPoint(Plane_Point)
+			#~ print L
+			
+			if L<dist:
+				dist=L
+				
+				Pt=point
+				#~ print Pt
+			
 		Pts.append(Pt)
-
+	#~ print Pts
+	
 	if parallelEdges[0].curvatureAt(0.0)<=tolerance:
 		X1B=Pts[0].Vertexes[0].X
 		Y1B=Pts[0].Vertexes[0].Y
@@ -1698,8 +1782,39 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 		Z2B=Pts[1].Vertexes[0].Z
 		CourbeBarre=Part.makeLine((X1B,Y1B,Z1B),(X2B,Y2B,Z2B))
 	else :
-		CourbeBarre=0
-
+		if len(Pts)==2:
+			Alpha=[]
+			P0=Courbe.valueAt(Courbe.FirstParameter)
+			Zero=P0-Pnt
+			#~ Line=Part.makeLine(((0.0,0.0,0.0)),(Zero.x,Zero.y,Zero.z))
+			#~ Part.show(Line)
+			for pt in Pts:
+				Vtest=pt.Vertexes[0].Point
+				V=pt.Vertexes[0].Point-Pnt
+				#~ print V
+				#~ print Zero
+				Alpha.append(math.degrees(DraftVecUtils.angle(Zero,V,Vaxis)))
+				#~ Line=Part.makeLine(((0.0,0.0,0.0)),(V.x,V.y,V.z))
+				#~ Part.show(Line)
+				#~ Line=Part.makeLine(((0.0,0.0,0.0)),(Vtest.x,Vtest.y,Vtest.z))
+				#~ Part.show(Line)
+			print Alpha	
+			#~ Line=Part.makeLine(((0.0,0.0,0.0)),((V1-Pnt).x,(V1-Pnt).y,(V1-Pnt).z))
+			#~ Part.show(Line)
+			Beta=math.degrees(DraftVecUtils.angle(Zero,V1-Pnt,Vaxis))
+			print Beta
+			AlphaControle=[]
+			for angle in Alpha:
+				if angle <0:
+					angle=360+angle
+				AlphaControle.append(angle)
+			print AlphaControle
+			if AlphaControle[0]>Beta:
+				Alpha.reverse()
+			print Alpha	
+			CourbeBarre=Part.makeCircle(Rayon,Pnt,Vaxis,Alpha[0],Alpha[1])
+		else:
+			print "Pbm"
 
 	return CourbeBarre
 		
@@ -2131,8 +2246,8 @@ if sel:
 			
 		if typeSol[0]==1:#Poutre
 			Sections.append(GetSection(solide))
-		if typeSol[0]==2:#Barre
-			Plaques.append(typeSol[1])
+		if typeSol[0]==2:#Plaque
+			Plaques.append(GetInfoPlaque(solide,typeSol[2],typeSol[3]))
 	#~ print Sections
 	if len(Sections)>=1:
 		for section in Sections:
@@ -2160,15 +2275,18 @@ if sel:
 				print str(TypeSections[n][0])+" Longueur : "+str(float(int(section[1]*100+0.49))/100)+" mm"
 			n=n+1
 	if len(Plaques)>=1:
-		Sn(Plaques)
 		for plaque in Plaques:
-			RotAndMove(plaque)
+			RotAndMove(plaque[0])
+			#Rapatrie le nom du Label de la plaque
+			print plaque[1]
+			print "Surface : "+str(float(int(plaque[0].Area*100+0.49))/100)+" mm²"
+			#Rapatrie l'épaisseur de la plaque
+			print "Epaisseur : "+str(float(int(plaque[2]*100+0.49))/100)+" mm"
 			
-			#Rapatrier le nom du LAbel de la plaque
 			#Identifier les plaque identiques
 			#Identifier et positionner les trous de perçages et les oblongs
 			#Créer dxf en nommant le fichier avec l'épaisseur et la quantité
-			Part.show(plaque)
+			Part.show(plaque[0])
 		
 		
 else:
