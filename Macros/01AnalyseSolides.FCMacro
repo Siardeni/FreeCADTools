@@ -98,6 +98,11 @@ def Sn(Faces):
 	
 	return Sn
 
+def CreateLine(P1,P2,Show):
+	Line=Part.makeLine((P1.x,P1.y,P1.z),(P2.x,P2.y,P2.z))
+	if Show==1:
+		Part.show(Line)
+	return Line
 
 #Copie Macro WorkFeature
 
@@ -186,6 +191,10 @@ def intersecPerpendicularLine(A, B, C, info=0):
         print_point(T, msg="Intersection Point at distance of " +
                     str(distance) + " is : ")
     return T, distance, Tprime
+
+
+
+
 
 #
 #Catalogues profilés
@@ -1033,14 +1042,16 @@ def ParamIouH(FaceSection):
 		h=l1*2
 		b=edge1.Length
 		tw=l2*2
+		Zaxe=edge1.tangentAt(0)
 	else :
 		h=l2*2
 		b=edge2.Length
 		tw=l1*2
-		
+		Zaxe=edge2.tangentAt(0)
+	
 	PtAxe=CDG
 		
-	return [h,b,tw,PtAxe]
+	return [h,b,tw,PtAxe,Zaxe]
 
 def ParamCorniereAcier(FaceSection):
 	
@@ -1083,7 +1094,9 @@ def ParamCorniereAcier(FaceSection):
 	
 	PtAxe=CDG
 	
-	return [L1,L2,Ep,PtAxe]
+	ZAxe=Vector_A
+	
+	return [L1,L2,Ep,PtAxe,ZAxe]
 	
 
 def ParamPlatCarre(FaceSection):
@@ -1112,8 +1125,10 @@ def ParamPlatCarre(FaceSection):
 		L2=t2
 		
 	PtAxe=CDG
+	
+	ZAxe=edge0.tangentAt(0)
 			
-	return [L1,L2,Type,PtAxe]
+	return [L1,L2,Type,PtAxe,ZAxe]
 		
 def ParamTe(FaceSection):
 	
@@ -1151,9 +1166,11 @@ def ParamTe(FaceSection):
 		d1=C1.sub(C2)
 		h=math.sqrt((d1.x)**2+(d1.y)**2+(d1.z)**2)
 	
+	ZAxe=d1.tangentAt(0)
+	
 	PtAxe=CDG
-		
-	return [b,h,PtAxe]
+	
+	return [b,h,PtAxe,ZAxe]
 
 def ParamRond(FaceSection):
 	
@@ -1166,29 +1183,40 @@ def ParamRond(FaceSection):
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
 	
-	return [d,PtAxe]
+	P0=edge.Curve.Center
+	P1=edge.valueAt(edge.FirstParameter)
+	ZAxe=P1-P0
+	
+	return [d,PtAxe,ZAxe]
 
 def ParamTubeRond(FaceSection):
 	
 	Section=FaceSection[1]
 	
 	ln=LnCurves(Section.Faces[0].Edges)
-	
+
 	edge1=Section.Faces[0].Edges[ln[0][0]]
-	edge2=Section.Faces[0].Edges[ln[1][0]]
-	#~ print ln
 	
-	
-	d1=2*(edge1.Length/(2*math.pi))
-	d2=2*(edge2.Length/(2*math.pi))
+	if len(ln)==2:
+		edge2=Section.Faces[0].Edges[ln[1][0]]
+		
+	elif len(ln)==4:
+		edge2=Section.Faces[0].Edges[ln[3][0]]
+		
+	d1=2*edge1.Curve.Radius
+	d2=2*edge2.Curve.Radius
 	ep=(d1-d2)/2
-	
+		
 	#~ print d1,d2,ep
 	
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
 	
-	return [d1,d2,ep,PtAxe]
+	P0=edge1.Curve.Center
+	P1=edge1.valueAt(edge1.FirstParameter)
+	ZAxe=P1-P0
+	
+	return [d1,d2,ep,PtAxe,ZAxe]
 
 def ParamTubeCarreRectangle(FaceSection):
 	
@@ -1239,16 +1267,23 @@ def ParamTubeCarreRectangle(FaceSection):
 	
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
-		
-	return [h,b,ep,PtAxe]
+	
+	ZAxe=Section.Faces[0].Edges[ln[0][0]].tangentAt(0)
+	
+	return [h,b,ep,PtAxe,ZAxe]
 
 def ParamTubeCarreRectangleAlu(FaceSection):
 	
 	Section=FaceSection[1]
 	
 	ln=Ln(Section.Faces[0].Edges)
-	
+	print "ln"
+	print ln
+	print "------"
 	edge1=Section.Faces[0].Edges[ln[0][0]]
+	
+	Part.show(edge1)
+	
 	edge10X=edge1.Vertexes[0].X
 	edge10Y=edge1.Vertexes[0].Y
 	edge10Z=edge1.Vertexes[0].Z
@@ -1258,16 +1293,42 @@ def ParamTubeCarreRectangleAlu(FaceSection):
 
 	h=edge1.Length
 	cpt=0
+	n=4
 	for ed in Section.Faces[0].Edges:
+		
 		edX=ed.Vertexes[0].X
 		edY=ed.Vertexes[0].Y
 		edZ=ed.Vertexes[0].Z
+		
+		print "--------------"
+		print edX
+		print edge10X
+		print edge11X
+		print edY
+		print edge10Y
+		print edge11Y
+		print edZ
+		print edge10Z
+		print edge11Z
+		print "--------------"
+		print abs(edX-edge10X)
+		print abs(edY-edge10Y)
+		print abs(edZ-edge10Z)
+		print "***********"
+		print abs(edX-edge10X)
+		print abs(edY-edge10Y)
+		print abs(edZ-edge10Z)
+		print "***********"
+		
+		
 		if cpt!=ln[0][0]:
 			if abs(edX-edge10X)<=tolerance and abs(edY-edge10Y)<=tolerance and abs(edZ-edge10Z)<=tolerance :
+				print "Why?"
 				b=ed.Length
 			if abs(edX-edge11X)<=tolerance and abs(edY-edge11Y)<=tolerance and abs(edZ-edge11Z)<=tolerance :
 				b=ed.Length
 		cpt=cpt+1
+		
 	L=Section.Faces[0].Wires[0].Length
 	cpt=0
 	for wire in Section.Faces[0].Wires:
@@ -1291,7 +1352,9 @@ def ParamTubeCarreRectangleAlu(FaceSection):
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
 	
-	return [h,b,ep,PtAxe]
+	ZAxe=edge1.tangentAt(0)
+	
+	return [h,b,ep,PtAxe,ZAxe]
 
 
 def ParamUPE(FaceSection):
@@ -1309,7 +1372,9 @@ def ParamUPE(FaceSection):
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
 	
-	return [h,b,tw,PtAxe]
+	ZAxe=Section.Faces[0].Edges[ln[0][0]].tangentAt(0)
+	
+	return [h,b,tw,PtAxe,ZAxe]
 	
 def ParamUPN(FaceSection):
 	
@@ -1333,7 +1398,10 @@ def ParamUPN(FaceSection):
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
 	
-	return [h,b,tw,PtAxe]
+	ZAxe=Section.Faces[0].Edges[ln[0][0]].tangentAt(0)
+	
+	
+	return [h,b,tw,PtAxe,ZAxe]
 	
 def ParamLAlu(FaceSection):
 	
@@ -1377,7 +1445,9 @@ def ParamLAlu(FaceSection):
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
 	
-	return [h,b,ep,PtAxe]
+	ZAxe=edge1.tangentAt(0)
+	
+	return [h,b,ep,PtAxe,ZAxe]
 
 def ParamUPAF(FaceSection):
 	
@@ -1385,6 +1455,7 @@ def ParamUPAF(FaceSection):
 	
 	ln=Ln(Section.Faces[0].Edges)
 	
+	edge=Section.Faces[0].Edges[ln[0][0]]
 	
 	h=10
 	b=10
@@ -1392,8 +1463,10 @@ def ParamUPAF(FaceSection):
 	
 	CDG=Section.Faces[0].CenterOfMass
 	PtAxe=CDG
+	
+	ZAxe=edge.tangentAt(0)
 		
-	return [h,b,ep,PtAxe]
+	return [h,b,ep,PtAxe,ZAxe]
 
 def TypeSol(Solide):
 	
@@ -1414,6 +1487,26 @@ def TypeSol(Solide):
 	#~ print TriFaces[0][1]
 	#~ print TriFaces[1][1]
 	#~ print TriFaces[2][1]
+	
+	#Identification des suite de poutres (Tuyauterie)
+	FacesTangentes=[]
+	FaceNo1=faces[TriFaces[0][0]]
+	EdgeOfFaceNo1=LnCurves(FaceNo1.Edges)
+	EdgeNo1=FaceNo1.Edges[EdgeOfFaceNo1[0][0]]
+	#~ Part.show(FaceNo1)
+	#~ Part.show(EdgeNo1)
+	for face in faces:
+		for edge in face.Edges:
+			#~ if edge.curvatureAt(0)==0.0:
+				#~ edge.			
+			#~ else :
+				#~ print "trouvé"
+		
+		print "En travaux...."
+	
+	
+	
+	#Identification des plaques non pliées
 	n=0
 	if TriFaces[0][1]-TriFaces[1][1]<=0.1:#Essayer avec une plaque avec trous lamé, la plus petite possible pourvoir...
 		if TriFaces[1][1]-TriFaces[2][1]>tolerance:
@@ -1436,8 +1529,9 @@ def TypeSol(Solide):
 				LMax=TriEdgeGrdFace[0][1]
 				Area=Solide.Shape.Faces[TriFaces[0][0]].Area
 				lmin=Area/LMax
-				if LMax/lmin<30.0: #Critère pour savoir si on est sur un plat ou sur une plaque
-					TypeSolide=2
+				if LMax/lmin<20.0: #Critère pour savoir si on est sur un plat ou sur une plaque
+					TypeSolide=3
+	
 	
 	return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord#1:Poutre 2:Plaque(Platine)
 
@@ -1457,9 +1551,11 @@ def GetSection(Sol):
 		n=n+1
 	#~ print HighLength
 	#---------------
-	#Création d'un plan normal à l'arrête la plus longue
+	#Création de plans normaux à l'arrête la plus longue et section avec le solide pour trouver la section
+	#la plus grande donc celle qui est théoriquement complète... Laisse passer des erreurs
+	#A améliorer en projetants toutes les faces normales...
 	
-	NbPLans = 5
+	NbPLans = 3
 	edgeHighLength=EdgesSol[No]
 	
 	#~ Part.show(edgeHighLength)
@@ -1485,6 +1581,10 @@ def GetSection(Sol):
 		n=n+1
 	#~ Part.show(Section)
 	#~ Part.show(PlaneCenter)
+	
+	
+	
+	
 	
 	#---------------
 	#Recherche de toutes les arrêtes parallèles à la plus longue
@@ -1585,10 +1685,10 @@ def GetSection(Sol):
 	#~ Part.show(Section)
 	if len(Section.Faces)==1:
 		TestBarre=True
-		
+	
 	# Reste à implémanter le test de validation...
 	
-	return [Section,HighLength,TestBarre,ExtremFaces,Label,ParallelEdges]
+	return [Section,HighLength,TestBarre,ExtremFaces,Label,ParallelEdges,Sol]
 
 def GetInfoPlaque(Pla,Face,EdgesEdge):
 	
@@ -1626,32 +1726,77 @@ def GetInfoPlaque(Pla,Face,EdgesEdge):
 	WireOfOblongs=[]
 	for wire in WireOfDecoupe:
 		cptLigne=0 #compteur d'arrête droite pour exclure tous les perçages plus compliqués que des trous oblongs.
-		cptArc=0 #compteur d'arrête droite pour exclure tous les perçages plus compliqués que des trous oblongs.
+		cptArc=0 #
 		for edge in wire.Edges:
-			print edge.curvatureAt(0.0)
+			#~ print edge.curvatureAt(0.0)
 			if edge.curvatureAt(0.0)<=tolerance:
 				cptLigne=cptLigne+1
 			else:
 				cptArc=cptArc+1
-		print "cpt"
-		print cptLigne
-		print cptArc
-		print "------"
+		#~ print "cpt"
+		#~ print cptLigne
+		#~ print cptArc
+		#~ print "------"
 		if cptArc==1 or cptArc ==2:
 			if cptLigne==0:
 				WireOfTrous.append(wire)
 			else:
 				WireOfOblongs.append(wire)
+	Radius=[]
 	for wire in WireOfTrous:
-		print wire.Edges[0].Curve.Radius
+		#~ print wire.Edges[0].Curve.Radius
+		#~ print wire.Edges[0].Curve.Center
+		Radius.append(wire.Edges[0].Curve.Radius)
+	Radius.sort(None,None,False)
+	n=0
+	Qt=1
+	Holes=[]
+	for r in Radius:
 		
+		if n!=0:
+			if r==Radius[n-1]:
+				Qt=Qt+1
+			else :
+				Holes.append([2*Radius[n-1],Qt])
+				Qt=1
+			if n==len(Radius)-1:
+				Holes.append([2*r,Qt])
+		
+		n=n+1
+	RadiusAndCenterOblongs=[]
+	for wire in WireOfOblongs:
+		R=0
+		for edge in wire.Edges:
+			if edge.curvatureAt(0.0)>tolerance:
+				if R==0:
+					R=edge.Curve.Radius
+					Center=edge.Curve.Center
+				else:
+					if edge.Curve.Radius!=R:
+						R=0
+					else:
+						Center=Center-edge.Curve.Center
+						Dist=math.sqrt(math.pow(Center.x,2)+math.pow(Center.y,2)+math.pow(Center.z,2))
+						#~ print Dist
+		if R!=0:
+			RadiusAndCenterOblongs.append([R,Dist])
+	RadiusAndCenterOblongs.sort(None,None,False)
+	for oblong in RadiusAndCenterOblongs:
+		print "en cours"
+		
+		
+	
+						
+	OblonHoles=RadiusAndCenterOblongs		
+	
+	#~ print Holes
+	
 		# To be continued...
 			
 	FacePlaque=Face
 	Thickness=Lmoy
-	Holes=0
-
-	return FacePlaque,Name,Thickness,Holes
+	
+	return FacePlaque,Name,Thickness,Holes,OblonHoles
 
 	
 def TypeSection(Section):
@@ -1742,25 +1887,30 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 		Diff.projectToLine(V1-Vcenter,Vaxis)
 		Pnt=V1+Diff
 		Courbe=Part.makeCircle(Rayon,Pnt,Vaxis)
-		#~ Part.show(Courbe)
+	#~ Part.show(Courbe)
 	Pts=[]
 	#~ print ExtremFaces
 	for face in ExtremFaces:
 		#~ Part.show(face)
-		Plane_Point=face.valueAt(0,0)
+		Plane_Point=face.CenterOfMass
+		
 		Plane_Normal=face.normalAt(0,0)
 		Plane_face=Part.makePlane(LMax*10,LMax*10,Plane_Point, Plane_Normal )
+		#~ Part.show(Plane_face)
 		Plane_Center = Plane_face.CenterOfMass
 		Plane_Translate =  Plane_Point - Plane_Center
 		Plane_face.translate( Plane_Translate )
+		#~ Part.show(Plane_face)
 		points=Plane_face.section(Courbe)
-		#~ Part.show(face)
+		#~ Part.show(points)
 		
 		dist=LMax/2
 		#~ print dist
+		#~ print points.Vertexes
 		for point in points.Vertexes:
 			#~ print point.Point
 			#~ print Plane_Point
+			#~ CreateLine(point.Point,Plane_Point,1)
 			L=point.Point.distanceToPoint(Plane_Point)
 			#~ print L
 			
@@ -1798,7 +1948,7 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 				#~ Part.show(Line)
 				#~ Line=Part.makeLine(((0.0,0.0,0.0)),(Vtest.x,Vtest.y,Vtest.z))
 				#~ Part.show(Line)
-			print Alpha	
+			#~ print Alpha	
 			#~ Line=Part.makeLine(((0.0,0.0,0.0)),((V1-Pnt).x,(V1-Pnt).y,(V1-Pnt).z))
 			#~ Part.show(Line)
 			Beta=math.degrees(DraftVecUtils.angle(Zero,V1-Pnt,Vaxis))
@@ -1817,8 +1967,8 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 			print "Pbm"
 
 	return CourbeBarre
-		
-def RotAndMove(Face):
+	
+def RotAndMoveFace(Face):
 	
 	FaceRAM=Face
 	
@@ -1885,8 +2035,6 @@ def RotAndMove(Face):
 	FaceRAM.Placement=App.Placement(pos, rot2, center).multiply(FaceRAM.Placement)
 	FaceRAM.Placement=App.Placement(pos, rot3, center).multiply(FaceRAM.Placement)
 	
-	FaceRAM.BoundBox
-	
 	mov1x=-FaceRAM.BoundBox.XMin
 	mov1y=-FaceRAM.BoundBox.YMin
 	mov1z=-FaceRAM.BoundBox.ZMin
@@ -1896,7 +2044,63 @@ def RotAndMove(Face):
 	
 		
 	return FaceRAM
+
+def RotAndMoveSol(Sol,Pt,X,Z):
 	
+	X=X.tangentAt(0)
+	
+	SolRAM=Sol.Shape.copy()
+	
+	#~ print SolRAM
+		
+	V=Base.Vector(0.0,0.0,0.0)
+	VX=Base.Vector(1.0,0.0,0.0)
+	VZ=Base.Vector(0.0,0.0,1.0)
+	
+	if abs(Z.x)-abs(VZ.x)<tolerance and abs(Z.y)-abs(VZ.y)<tolerance and abs(Z.z)-abs(VZ.z)<tolerance:
+		Alpha=-math.degrees(VX.getAngle(X))
+		Beta=0.0
+		Gamma=0.0
+	else :
+		N=Z.cross(VZ)
+		Alpha=-90.0+math.degrees(N.getAngle(VX))
+		Beta=-math.degrees(Z.getAngle(VZ))
+		Gamma=-math.degrees(N.getAngle(X))+90.0
+	
+	pos=V
+	center=Pt
+	rot0=FreeCAD.Rotation(0.0,0.0,0.0)
+	rot1=FreeCAD.Rotation(Alpha,0.0,0.0)
+	rot2=FreeCAD.Rotation(0.0,Beta,0.0)
+	rot3=FreeCAD.Rotation(Gamma,0.0,0.0)
+	
+	SolRAM.Placement=App.Placement(pos, rot1, center).multiply(SolRAM.Placement)
+	SolRAM.Placement=App.Placement(pos, rot2, center).multiply(SolRAM.Placement)
+	SolRAM.Placement=App.Placement(pos, rot3, center).multiply(SolRAM.Placement)
+	
+	Longueur=SolRAM.BoundBox.XLength
+	
+	mov1x=-SolRAM.BoundBox.XMin
+	mov1y=-SolRAM.BoundBox.YMin
+	mov1z=-SolRAM.BoundBox.ZMin
+	
+	mov1=Base.Vector(mov1x,mov1y,mov1z)
+	SolRAM.Placement=App.Placement(mov1, rot0, center).multiply(SolRAM.Placement)
+	
+	mov1y=-SolRAM.BoundBox.YMax/2
+	mov1z=-SolRAM.BoundBox.ZMax/2
+	mov1=Base.Vector(0,mov1y,mov1z)
+	#~ print mov1
+	SolRAM.Placement=App.Placement(mov1, rot0, center).multiply(SolRAM.Placement)
+		
+	Longueur=SolRAM.BoundBox.XLength
+		
+	#~ Part.show(SolRAM)
+	
+	return SolRAM,Longueur
+	
+	
+
 def ProfilIPEouHE(TypeProf):
 	
 	profIPE=ProfIPE()
@@ -1922,7 +2126,7 @@ def ProfilIPEouHE(TypeProf):
 	else :
 		TypeIPEouHE="h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
-	return TypeIPEouHE,Param[3]
+	return TypeIPEouHE,Param[3],Param[4]
 	
 def ProfilIPN(TypeProf):
 	
@@ -1942,7 +2146,7 @@ def ProfilIPN(TypeProf):
 	if Test==0:
 		TypeUPN="Poutre IPN "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
-	return TypeIPN,Param[3]
+	return TypeIPN,Param[3],Param[4]
 
 def ProfilUPN(TypeProf):
 
@@ -1961,7 +2165,7 @@ def ProfilUPN(TypeProf):
 		TypeUPN="Poutre UPN "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
 	
-	return TypeUPN,Param[3]
+	return TypeUPN,Param[3],Param[4]
 	
 def ProfilUPE(TypeProf):
 	
@@ -1980,7 +2184,7 @@ def ProfilUPE(TypeProf):
 		TypeUPE="Poutre UPE "+"h="+str(Param[0])+" b="+str(Param[1])+" tw="+str(Param[2])+" (pas en catalogue...)"
 	
 	
-	return TypeUPE,Param[3]
+	return TypeUPE,Param[3],Param[4]
 	
 def ProfilCorniere(TypeProf):
 
@@ -2008,7 +2212,7 @@ def ProfilCorniere(TypeProf):
 	if Test==0:
 		TypeCorniere=TypeCorniere+"h="+str(Param[0])+" b="+str(Param[1])+" t="+str(Param[2])+" (pas en catalogue...)"
 
-	return TypeCorniere,Param[3]
+	return TypeCorniere,Param[3],Param[4]
 
 def ProfilPlatCarre(TypeProf):	
 
@@ -2045,7 +2249,7 @@ def ProfilPlatCarre(TypeProf):
 	if Test==0:
 		TypePlatCarre="Profil "+str(Param[2])+" : "+str(Param[0])+" x "+str(Param[1])
 
-	return TypePlatCarre,Param[3]
+	return TypePlatCarre,Param[3],Param[4]
 
 def ProfilTe(TypeProf):
 
@@ -2068,7 +2272,7 @@ def ProfilTe(TypeProf):
 	if Test==0:
 		TypeTe=TypeTe+str(mes[0])+" x "+str(mes[1])+" (pas en catalogue...)"
 
-	return TypeTe,Param[2]
+	return TypeTe,Param[2],Param[3]
 
 def ProfilRond(TypeProf):
 
@@ -2089,7 +2293,7 @@ def ProfilRond(TypeProf):
 	if Test==0:
 		TypeRond=TypeRond+str(Param[0])+" (pas en catalogue...)"
 
-	return TypeRond,Param[1]
+	return TypeRond,Param[1],Param[2]
 
 def ProfilTubeRond(TypeProf):
 	
@@ -2113,7 +2317,7 @@ def ProfilTubeRond(TypeProf):
 		TypeTubeRond="Profil Tube Rond Diamètre "+str(Param[0])+", épaisseur "+str(Param[2])+"\
 , Diamètre intérieur "+str(Param[1])+"\n(pas en catalogue...)"
 
-	return TypeTubeRond,Param[3]
+	return TypeTubeRond,Param[3],Param[4]
 
 def ProfilTubeCarreRectangle(TypeProf):
 
@@ -2132,7 +2336,7 @@ def ProfilTubeCarreRectangle(TypeProf):
 			TypeTubeCarreRectangle="Profil Tube rectangle "
 		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[1])+" x "+str(Param[0])+", épaisseur : "+str(Param[2])
 
-	return TypeTubeCarreRectangle,Param[3]
+	return TypeTubeCarreRectangle,Param[3],Param[4]
 
 def ProfilLAlu(TypeProf):
 	
@@ -2147,13 +2351,13 @@ def ProfilLAlu(TypeProf):
 			TypeLAlu="Profil cornière aluminium inégale "
 		TypeLAlu=TypeLAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 	
-	return TypeLAlu,Param[3]
+	return TypeLAlu,Param[3],Param[4]
 
 def ProfilTouUAlu(TypeProf):
 	
 	TypeTouUAlu="Té ou U Alu (Reste à faire...) "
 	
-	return TypeTouUAlu,Param[3]
+	return TypeTouUAlu,Param[3],Param[4]
 
 def ProfilTubeCarreRectangleAlu(TypeProf):
 	
@@ -2168,7 +2372,7 @@ def ProfilTubeCarreRectangleAlu(TypeProf):
 			TypeTubeCarreRectangleAlu="Profil Tube rectangle aluminium "
 		TypeTubeCarreRectangleAlu=TypeTubeCarreRectangleAlu+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 
-	return TypeTubeCarreRectangleAlu,Param[3]
+	return TypeTubeCarreRectangleAlu,Param[3],Param[4]
 	
 def ProfilUPAFAcier(TypeProf):
 	
@@ -2179,7 +2383,7 @@ def ProfilUPAFAcier(TypeProf):
 	if Test==0:
 		TypeUPAFAcier="En travaux Profil UPAF (coulisse) "+str(Param[0])+" x "+str(Param[1])+", épaisseur : "+str(Param[2])
 		
-	return TypeUPAFAcier,Param[3]
+	return TypeUPAFAcier,Param[3],Param[4]
 		
 def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 	
@@ -2192,17 +2396,18 @@ def FamilleProfile(NbArretes,ProfilOuvert,NbArretesDroites,NbLgArrDiff):
 	[14,1,8,[4,5],"Te",7],\
 	[1,1,0,[0],"Rond",8],\
 	[2,2,0,[0],"Tube Rond",9],\
+	[4,2,0,[0],"Tube Rond",9],\
 	[16,2,8,[1,2],"Tube Carre Rectangle acier",10],\
 	[6,1,6,[3,4,5],"Profil L Alu",11],\
 	[8,1,8,[3,4,5],"Profil U T Alu",12],\
 	[8,2,8,[2,3,4],"Tube Carre Rectangle Alu",13],\
 	[12,1,8,[2,3],"UPAF acier",14]]
-	#~ 
+	
 	#~ print NbArretes
 	#~ print ProfilOuvert
 	#~ print NbArretesDroites
 	#~ print NbLgArrDiff
-	#~ 
+	
 	
 	
 	TypeProfil=False
@@ -2246,9 +2451,13 @@ if sel:
 			
 		if typeSol[0]==1:#Poutre
 			Sections.append(GetSection(solide))
-		if typeSol[0]==2:#Plaque
+		if typeSol[0]==2:#Suite de poutre (tuyauterie)
+			Sections.append(GetSection(solide))
+		if typeSol[0]==3:#Plaque
 			Plaques.append(GetInfoPlaque(solide,typeSol[2],typeSol[3]))
 	#~ print Sections
+	Plaques.sort(None,None,False)
+	Sections.sort(None,None,False)
 	if len(Sections)>=1:
 		for section in Sections:
 			if section[2]==True:
@@ -2258,9 +2467,16 @@ if sel:
 				ExtFaces=section[3]
 				HighLength=section[1]
 				ParallelEdges=section[5]
+				
 				#~ print TypeSections
 				PointAxe=TypeSections[len(TypeSections)-1][1]
 				Axes.append(TraceAxeBArre(sect,ExtFaces,PointAxe,HighLength,ParallelEdges))
+				
+				
+				# Sortir tous les Zaxis des profil avant de décomenter la suite.
+				ZEdgeSection=TypeSections[len(TypeSections)-1][2]
+				RotAndMoveSol(section[6],PointAxe,ParallelEdges[0],ZEdgeSection)
+				
 		for axe in Axes:
 			Part.show(axe)
 	#~ print TypeSections
@@ -2276,13 +2492,28 @@ if sel:
 			n=n+1
 	if len(Plaques)>=1:
 		for plaque in Plaques:
-			RotAndMove(plaque[0])
+			RotAndMoveFace(plaque[0])
 			#Rapatrie le nom du Label de la plaque
+			print "---------------------"
 			print plaque[1]
-			print "Surface : "+str(float(int(plaque[0].Area*100+0.49))/100)+" mm²"
+			Surface=plaque[0].Area
+			Epaisseur=plaque[2]
+			Volume=Surface*Epaisseur
+			DensiteAcier=7.88
+			Masse=DensiteAcier*Volume/1000000
+			MasseSansDensite=Volume/1000000
 			#Rapatrie l'épaisseur de la plaque
-			print "Epaisseur : "+str(float(int(plaque[2]*100+0.49))/100)+" mm"
-			
+			print "Epaisseur : "+str(float(int(Epaisseur*100+0.49))/100)+" mm"
+			print "Masse (Acier) : "+str(float(int(Masse*100+0.49))/100)+" kg"
+			print "Masse (Densité 1) : "+str(float(int(MasseSansDensite*100+0.49))/100)+" kg"
+			print "Surface : "+str(float(int(Surface/1000000*100+0.49))/100)+" m²"
+			for hole in plaque[3]:
+				if hole[1]>1:
+					s="s"
+				else:
+					s=""
+				print str(hole[1])+" Trou"+s+" Diamètre "+str(hole[0])
+			print "---------------------"
 			#Identifier les plaque identiques
 			#Identifier et positionner les trous de perçages et les oblongs
 			#Créer dxf en nommant le fichier avec l'épaisseur et la quantité
