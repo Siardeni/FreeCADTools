@@ -99,10 +99,17 @@ def Sn(Faces):
 	return Sn
 
 def CreateLine(P1,P2,Show):
-	Line=Part.makeLine((P1.x,P1.y,P1.z),(P2.x,P2.y,P2.z))
-	if Show==1:
-		Part.show(Line)
-	return Line
+	if P1.x==P2.x and P1.y==P2.y and P1.z==P2.z:
+		print "Les coordonnées des points sont identiques. Créations d'une ligne partant de (0,0,0) et allant vers le premier points" 
+		X0Y0Z0=Base.Vector(0.0,0.0,0.0)
+		L1=Part.makeLine((X0Y0Z0.x,X0Y0Z0.y,X0Y0Z0.z),(P1.x,P1.y,P1.z))
+		if Show==1:
+			Part.show(L1)
+	else:
+		Line=Part.makeLine((P1.x,P1.y,P1.z),(P2.x,P2.y,P2.z))
+		if Show==1:
+			Part.show(Line)
+	return
 
 #Copie Macro WorkFeature
 
@@ -1495,16 +1502,14 @@ def TypeSol(Solide):
 	EdgeNo1=FaceNo1.Edges[EdgeOfFaceNo1[0][0]]
 	#~ Part.show(FaceNo1)
 	#~ Part.show(EdgeNo1)
-	for face in faces:
-		for edge in face.Edges:
+	#~ for face in faces:
+		#~ for edge in face.Edges:
 			#~ if edge.curvatureAt(0)==0.0:
-				#~ edge.			
+				#~ print "En travaux...."
 			#~ else :
 				#~ print "trouvé"
-		
-		print "En travaux...."
-	
-	
+		#~ 
+		#~ print "En travaux...."
 	
 	#Identification des plaques non pliées
 	n=0
@@ -1581,14 +1586,9 @@ def GetSection(Sol):
 		n=n+1
 	#~ Part.show(Section)
 	#~ Part.show(PlaneCenter)
-	
-	
-	
-	
-	
 	#---------------
 	#Recherche de toutes les arrêtes parallèles à la plus longue
-	#Dans le cas d'un profil courbé, renvoi 0
+	#ou ayant le même axe de rotation pour les profils courbés
 	###### 
 	ParallelEdges=[]
 	if EdgesSol[No].curvatureAt(0.0)<=tolerance:
@@ -1619,6 +1619,47 @@ def GetSection(Sol):
 		#Profil courbé
 		#~ for ed in ParallelEdges:
 		#~ Part.show(EdgesSol[ed])
+	#---------------
+	#Tri des faces du solide
+	#Tri des faces normales par rapport à la section
+	#~ vectFaceSect=Section.Faces[0].Surface#vecteur normale à la section
+	#~ n=0
+	#~ ListeFaceNormalSection=[]
+	#~ for face in FacesSol:
+		#~ if (str(face.Surface) == "<Plane object>")  :
+			#~ vectFace=face.Surface.Axis
+			#~ if math.degrees(vectFace.getAngle(vectFaceSect))==90:
+				#~ Part.show(face)
+				#~ ListeFaceNormalSection.append(n)
+		#~ elif (str(face.Surface) == "<Cylinder object>"):
+			#~ vectFace=face.Surface.Axis
+			#~ if math.degrees(vectFace.getAngle(vectFaceSect))==0 or math.degrees(vectFace.getAngle(vectFaceSect))==180:
+				#~ Part.show(face)
+				#~ ListeFaceNormalSection.append(n)
+		#~ n=n+1
+	#Tri des faces coplanaire avec une des arrêtes de la section
+	
+	n=0
+	ListeFaceCoplanEdgeSection=[]
+	
+	for edge in Section.Edges:
+		for face in FacesSol:
+			if (str(face.Surface) == "<Plane object>")  :
+				d0=edge.Vertexes[0].distToShape(face.Surface)
+				d1=edge.Vertexes[1].distToShape(face.Surface)
+				if d0[0]<tolerance and d1[0]<tolerance:
+					Part.show(face)
+				ListeFaceCoplanEdgeSection
+			elif (str(face.Surface) == "<Cylinder object>"):
+				print "en cours"
+			
+			
+			
+			
+			
+			
+			
+			
 	#---------------
 	#Recherche des deux faces d'extrémitées
 	ExtremFacesNo=[]
@@ -1743,56 +1784,64 @@ def GetInfoPlaque(Pla,Face,EdgesEdge):
 			else:
 				WireOfOblongs.append(wire)
 	Radius=[]
-	for wire in WireOfTrous:
-		#~ print wire.Edges[0].Curve.Radius
-		#~ print wire.Edges[0].Curve.Center
-		Radius.append(wire.Edges[0].Curve.Radius)
-	Radius.sort(None,None,False)
-	n=0
-	Qt=1
-	Holes=[]
-	for r in Radius:
-		
-		if n!=0:
-			if r==Radius[n-1]:
-				Qt=Qt+1
-			else :
-				Holes.append([2*Radius[n-1],Qt])
-				Qt=1
-			if n==len(Radius)-1:
-				Holes.append([2*r,Qt])
-		
-		n=n+1
-	RadiusAndCenterOblongs=[]
-	for wire in WireOfOblongs:
-		R=0
-		for edge in wire.Edges:
-			if edge.curvatureAt(0.0)>tolerance:
-				if R==0:
-					R=edge.Curve.Radius
-					Center=edge.Curve.Center
-				else:
-					if edge.Curve.Radius!=R:
-						R=0
-					else:
-						Center=Center-edge.Curve.Center
-						Dist=math.sqrt(math.pow(Center.x,2)+math.pow(Center.y,2)+math.pow(Center.z,2))
-						#~ print Dist
-		if R!=0:
-			RadiusAndCenterOblongs.append([R,Dist])
-	RadiusAndCenterOblongs.sort(None,None,False)
-	for oblong in RadiusAndCenterOblongs:
-		print "en cours"
-		
-		
 	
-						
-	OblonHoles=RadiusAndCenterOblongs		
-	
-	#~ print Holes
-	
-		# To be continued...
+	if len(WireOfTrous)>0:
+		for wire in WireOfTrous:
+			#~ print wire.Edges[0].Curve.Radius
+			#~ print wire.Edges[0].Curve.Center
+			Radius.append(wire.Edges[0].Curve.Radius)
+		Radius.sort(None,None,False)
+		n=0
+		Qt=1
+		Holes=[]
+		for r in Radius:
 			
+			if n!=0:
+				if r==Radius[n-1]:
+					Qt=Qt+1
+				else :
+					Holes.append([2*Radius[n-1],Qt])
+					Qt=1
+				if n==len(Radius)-1:
+					Holes.append([2*r,Qt])
+			n=n+1
+	else:
+		Holes=[]
+			
+	if len(WireOfOblongs)>0:
+		RadiusAndCenterOblongs=[]
+		for wire in WireOfOblongs:
+			R=0
+			for edge in wire.Edges:
+				if edge.curvatureAt(0.0)>tolerance:
+					if R==0:
+						R=edge.Curve.Radius
+						Center=edge.Curve.Center
+					else:
+						if edge.Curve.Radius!=R:
+							R=0
+						else:
+							Center=Center-edge.Curve.Center
+							Dist=math.sqrt(math.pow(Center.x,2)+math.pow(Center.y,2)+math.pow(Center.z,2))
+							#~ print Dist
+			if R!=0:
+				RadiusAndCenterOblongs.append([R,Dist])
+		RadiusAndCenterOblongs.sort(None,None,False)
+		#~ print RadiusAndCenterOblongs
+		OblonHoles=[[1,RadiusAndCenterOblongs[0][0],RadiusAndCenterOblongs[0][1]]]
+		#~ print OblonHoles
+		nbdiff=0
+		for n in range(len(RadiusAndCenterOblongs)-1):
+			if RadiusAndCenterOblongs[n+1][0]==RadiusAndCenterOblongs[n][0] and RadiusAndCenterOblongs[n+1][1]==RadiusAndCenterOblongs[n][1]:
+				OblonHoles[nbdiff][0]=OblonHoles[nbdiff][0]+1
+			else:
+				OblonHoles.append([1,RadiusAndCenterOblongs[n+1][0],RadiusAndCenterOblongs[n+1][1]])
+				nbdiff=nbdiff+1
+			print "------------"
+			#~ print OblonHoles
+	else:
+		OblonHoles=[]
+	
 	FacePlaque=Face
 	Thickness=Lmoy
 	
@@ -1921,7 +1970,8 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 				#~ print Pt
 			
 		Pts.append(Pt)
-	#~ print Pts
+	print Pts
+	#~ CreateLine(Pts[0].Point,Pts[1].Point,1)
 	
 	if parallelEdges[0].curvatureAt(0.0)<=tolerance:
 		X1B=Pts[0].Vertexes[0].X
@@ -2513,6 +2563,13 @@ if sel:
 				else:
 					s=""
 				print str(hole[1])+" Trou"+s+" Diamètre "+str(hole[0])
+			for oblongHole in plaque[4]:
+				if oblongHole[1]>1:
+					s="s"
+				else:
+					s=""
+				print str(oblongHole[0])+" Trou"+s+" oblong"+s+" Diamètre "+str(oblongHole[1])+" Longueur "+str(oblongHole[2])
+			
 			print "---------------------"
 			#Identifier les plaque identiques
 			#Identifier et positionner les trous de perçages et les oblongs
