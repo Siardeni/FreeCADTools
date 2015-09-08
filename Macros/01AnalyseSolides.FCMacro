@@ -1284,9 +1284,9 @@ def ParamTubeCarreRectangleAlu(FaceSection):
 	Section=FaceSection[1]
 	
 	ln=Ln(Section.Faces[0].Edges)
-	print "ln"
-	print ln
-	print "------"
+	#~ print "ln"
+	#~ print ln
+	#~ print "------"
 	edge1=Section.Faces[0].Edges[ln[0][0]]
 	
 	Part.show(edge1)
@@ -1307,26 +1307,26 @@ def ParamTubeCarreRectangleAlu(FaceSection):
 		edY=ed.Vertexes[0].Y
 		edZ=ed.Vertexes[0].Z
 		
-		print "--------------"
-		print edX
-		print edge10X
-		print edge11X
-		print edY
-		print edge10Y
-		print edge11Y
-		print edZ
-		print edge10Z
-		print edge11Z
-		print "--------------"
-		print abs(edX-edge10X)
-		print abs(edY-edge10Y)
-		print abs(edZ-edge10Z)
-		print "***********"
-		print abs(edX-edge10X)
-		print abs(edY-edge10Y)
-		print abs(edZ-edge10Z)
-		print "***********"
-		
+		#~ print "--------------"
+		#~ print edX
+		#~ print edge10X
+		#~ print edge11X
+		#~ print edY
+		#~ print edge10Y
+		#~ print edge11Y
+		#~ print edZ
+		#~ print edge10Z
+		#~ print edge11Z
+		#~ print "--------------"
+		#~ print abs(edX-edge10X)
+		#~ print abs(edY-edge10Y)
+		#~ print abs(edZ-edge10Z)
+		#~ print "***********"
+		#~ print abs(edX-edge10X)
+		#~ print abs(edY-edge10Y)
+		#~ print abs(edZ-edge10Z)
+		#~ print "***********"
+		#~ 
 		
 		if cpt!=ln[0][0]:
 			if abs(edX-edge10X)<=tolerance and abs(edY-edge10Y)<=tolerance and abs(edZ-edge10Z)<=tolerance :
@@ -1538,11 +1538,78 @@ def TypeSol(Solide):
 					TypeSolide=3
 	
 	
-	return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord#1:Poutre 2:Plaque(Platine)
+	
+	return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord,faces,edges,TriFaces,TriEdges
 
-def GetSection(Sol):
-	EdgesSol=Sol.Shape.Edges
-	FacesSol=Sol.Shape.Faces
+def GetSection(Sol,faces,edges,triFaces,triEdges):
+
+	#  Projet de refonte de la fonction :
+	
+	#  Chercher le plus grand ensemble de faces voisines (au moins une edge en commun) ayant pour les
+	# faces planes toutes leurs normales coplanaires et pour les faces cylindriques tous leurs axes 
+	# parallèles. --> EnsFaceSection
+	#  Chercher toutes les faces planes coplanaires aux faces planes de la liste EnsFaceSection
+	#  Chercher toutes les faces cylindriques ayant le même cylindre de base que les faces cylindriques
+	# de la liste EnsFaceSection
+	#  
+		
+	n=0
+	SerieDeFaceContigu=[[[],[]]]
+	for n in range(3):#pour les 3 plus grandes surfaces
+		FaceRef=faces[triFaces[n][0]]
+		Part.show(FaceRef)
+		Norm0=FaceRef.normalAt(0,0)
+		SerieDeFaceContigu[n].append([FaceRef])
+		for edge in FaceRef.Edges:#pour chaque arete de la grande surface courante
+			for face in faces:#pour chaque face du solide
+				if not face.isEqual(FaceRef):
+					for ed in face.Edges:#pour chaque arete de la face précédente
+						if ed.isPartner(edge):#si l'arete est commune
+							SerieDeFaceContigu[n][0].append(face)
+							Part.show(face)
+							SerieDeFaceContigu[n][1].append(ed)
+							Norm1=face.normalAt(0,0)
+							test=1
+							while test==1:
+								for facen in faces:
+									for edn in face.Edges:
+										if ed.isPartner(edge):
+											testFace=0
+											#~ print n
+											for faceMarque in SerieDeFaceContigu[n][0]:
+												if not faceMarque.isEqual(facen):
+													testFace=1
+											if facen.isEqual(FaceRef) or testFace==0:
+												test=0
+											if testFace==1:
+												Normn=facen.normalAt(0,0)
+												D=Normn.distanceToPlane(Norm0,Norm1)
+												#~ print D
+												if D<tolerance:
+													SerieDeFaceContigu[n][0].append(facen)
+													SerieDeFaceContigu[n][1].append(edn)
+		n=n+1
+		SerieDeFaceContigu.append([[]])
+							
+						#~ 
+					
+					
+					
+				#~ if edge.curvatureAt(0)==0.0:
+					#~ Norm=face.normalAt(0,0)
+					#~ if 
+					#~ for ed in face.Edges:
+						#~ if ed.isPartner(edge):
+				#~ else:
+					
+	
+
+
+
+
+
+	EdgesSol=edges
+	FacesSol=faces
 	Label=Sol.Label
 	#---------------
 	#Recherche de l'arrête la plus longue
@@ -1642,19 +1709,19 @@ def GetSection(Sol):
 	n=0
 	ListeFaceCoplanEdgeSection=[]
 	
-	for edge in Section.Edges:
-		for face in FacesSol:
-			if (str(face.Surface) == "<Plane object>")  :
-				d0=edge.Vertexes[0].distToShape(face.Surface)
-				d1=edge.Vertexes[1].distToShape(face.Surface)
-				if d0[0]<tolerance and d1[0]<tolerance:
-					Part.show(face)
-				ListeFaceCoplanEdgeSection
-			elif (str(face.Surface) == "<Cylinder object>"):
-				print "en cours"
+	#~ for edge in Section.Edges:
+		#~ for face in FacesSol:
+			#~ if (str(face.Surface) == "<Plane object>")  :
+				#~ d0=edge.Vertexes[0].distToShape(face.Surface)
+				#~ d1=edge.Vertexes[1].distToShape(face.Surface)
+				#~ if d0[0]<tolerance and d1[0]<tolerance:
+					#~ Part.show(face)
+				#~ ListeFaceCoplanEdgeSection
+			#~ elif (str(face.Surface) == "<Cylinder object>"):
+				#~ print "en cours"
 			
 			
-			
+
 			
 			
 			
@@ -1728,6 +1795,16 @@ def GetSection(Sol):
 		TestBarre=True
 	
 	# Reste à implémanter le test de validation...
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	return [Section,HighLength,TestBarre,ExtremFaces,Label,ParallelEdges,Sol]
 
@@ -1970,7 +2047,7 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 				#~ print Pt
 			
 		Pts.append(Pt)
-	print Pts
+	#~ print Pts
 	#~ CreateLine(Pts[0].Point,Pts[1].Point,1)
 	
 	if parallelEdges[0].curvatureAt(0.0)<=tolerance:
@@ -2002,16 +2079,16 @@ def TraceAxeBArre(Section,ExtremFaces,PtAxe,LMax,parallelEdges):
 			#~ Line=Part.makeLine(((0.0,0.0,0.0)),((V1-Pnt).x,(V1-Pnt).y,(V1-Pnt).z))
 			#~ Part.show(Line)
 			Beta=math.degrees(DraftVecUtils.angle(Zero,V1-Pnt,Vaxis))
-			print Beta
+			#~ print Beta
 			AlphaControle=[]
 			for angle in Alpha:
 				if angle <0:
 					angle=360+angle
 				AlphaControle.append(angle)
-			print AlphaControle
+			#~ print AlphaControle
 			if AlphaControle[0]>Beta:
 				Alpha.reverse()
-			print Alpha	
+			#~ print Alpha	
 			CourbeBarre=Part.makeCircle(Rayon,Pnt,Vaxis,Alpha[0],Alpha[1])
 		else:
 			print "Pbm"
@@ -2500,14 +2577,16 @@ if sel:
 		#~ print solide.Label
 			
 		if typeSol[0]==1:#Poutre
-			Sections.append(GetSection(solide))
+			Sections.append(GetSection(solide,typeSol[4],typeSol[5],typeSol[6],typeSol[7]))
 		if typeSol[0]==2:#Suite de poutre (tuyauterie)
 			Sections.append(GetSection(solide))
 		if typeSol[0]==3:#Plaque
 			Plaques.append(GetInfoPlaque(solide,typeSol[2],typeSol[3]))
 	#~ print Sections
 	Plaques.sort(None,None,False)
-	Sections.sort(None,None,False)
+	#~ print Sections
+	#~ Sections.sort(None,None,False)
+	#~ print Sections
 	if len(Sections)>=1:
 		for section in Sections:
 			if section[2]==True:
