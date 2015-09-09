@@ -34,6 +34,14 @@ Gui=FreeCADGui
 
 tolerance=0.000001
 
+def show(shape,name='Shape',doc=None):
+    if doc is None:
+        import FreeCAD
+        doc=FreeCAD.activeDocument() or FreeCAD.newDocument()
+    obj=doc.addObject("Part::Feature",name)
+    obj.Shape=shape
+    return obj
+
 def comp(v1, v2):
 	#fonction utile a xxx.sort(cmp=comp)
     if v1[1]>v2[1]:
@@ -1552,47 +1560,82 @@ def GetSection(Sol,faces,edges,triFaces,triEdges):
 	#  Chercher toutes les faces cylindriques ayant le même cylindre de base que les faces cylindriques
 	# de la liste EnsFaceSection
 	#  
-		
+	P0=Base.Vector(0.0,0.0,0.0)	
 	n=0
-	SerieDeFaceContigu=[[[],[]]]
-	for n in range(3):#pour les 3 plus grandes surfaces
-		FaceRef=faces[triFaces[n][0]]
-		Part.show(FaceRef)
+	cpt=0
+	SerieDeFaceContigu=[]
+	for Surf in range(1):#pour les 3 plus grandes surfaces
+		FaceRef=faces[triFaces[Surf][0]]
+		show(FaceRef,"Master")
+		#~ if (str(FaceRef.Surface) == "<Plane object>")  :
+			#~ Norm0=face.Surface.Axis
+			#~ Axis0=0
+		#~ elif (str(FaceRef.Surface) == "<Cylinder object>"):
+			#~ Norm0=0
+			#~ Axis0=face.Surface.Axis
 		Norm0=FaceRef.normalAt(0,0)
-		SerieDeFaceContigu[n].append([FaceRef])
 		for edge in FaceRef.Edges:#pour chaque arete de la grande surface courante
+			SerieDeFaceContigu.append([[],[]])
+			SerieDeFaceContigu[n][0].append(FaceRef)
 			for face in faces:#pour chaque face du solide
 				if not face.isEqual(FaceRef):
 					for ed in face.Edges:#pour chaque arete de la face précédente
 						if ed.isPartner(edge):#si l'arete est commune
 							SerieDeFaceContigu[n][0].append(face)
-							Part.show(face)
 							SerieDeFaceContigu[n][1].append(ed)
+							show(face,"Slave")
+							#~ if (str(FaceRef.Surface) == "<Plane object>")  :
+								#~ Norm1=face.Surface.Axis
+								#~ Axis1=0
+							#~ elif (str(face.Surface) == "<Cylinder object>"):
+								#~ Norm1=0
+								#~ Axis1=face.Surface.Axis
 							Norm1=face.normalAt(0,0)
+							Plan=Norm0.cross(Norm1)
 							test=1
+							faceold=face
 							while test==1:
-								for facen in faces:
-									for edn in face.Edges:
-										if ed.isPartner(edge):
-											testFace=0
-											#~ print n
-											for faceMarque in SerieDeFaceContigu[n][0]:
-												if not faceMarque.isEqual(facen):
-													testFace=1
-											if facen.isEqual(FaceRef) or testFace==0:
-												test=0
-											if testFace==1:
-												Normn=facen.normalAt(0,0)
-												D=Normn.distanceToPlane(Norm0,Norm1)
-												#~ print D
-												if D<tolerance:
-													SerieDeFaceContigu[n][0].append(facen)
-													SerieDeFaceContigu[n][1].append(edn)
-		n=n+1
-		SerieDeFaceContigu.append([[]])
-							
-						#~ 
-					
+								for edgeold in faceold.Edges:
+									for facen in faces:
+										for edn in facen.Edges:
+											if edn.isPartner(edgeold):
+												testFace=1
+												#~ print n
+												for faceMarque in SerieDeFaceContigu[n][0]:
+													if faceMarque.isEqual(facen):
+														testFace=0
+												if testFace==1:
+													if (str(facen.Surface) == "<Plane object>")  :
+														Normn=face.Surface.Axis
+														Axis1=0
+													elif (str(facen.Surface) == "<Cylinder object>"):
+														Normn=0
+														Axis1=face.Surface.Axis
+													
+													#En travaux
+													
+													Normn=facen.normalAt(0,0)
+													D=Normn.distanceToPlane(P0,Plan)
+													if abs(D)<tolerance:
+														SerieDeFaceContigu[n][0].append(facen)
+														faceold=facen
+														SerieDeFaceContigu[n][1].append(edn)
+														show(facen,'Face'+str(cpt)+"n"+str(n))
+														for edn2 in facen.Edges:
+															D0=edn2.Vertexes[0].distToShape(FaceRef)
+															D1=edn2.Vertexes[1].distToShape(FaceRef)
+															if abs(D0[0])<tolerance and abs(D1[0])<tolerance:
+																test=0
+											cpt=cpt+1
+								#~ boucle=boucle+1
+								#~ if boucle==4:
+									#~ test=0
+			n=n+1
+		#~ SerieDeFaceContigu.append([[]])
+	#~ print SerieDeFaceContigu					
+	#~ for face in SerieDeFaceContigu[0][0]:
+		#~ Part.show(face)#~ print serie
+		#~ print "------------*************"				
 					
 					
 				#~ if edge.curvatureAt(0)==0.0:
