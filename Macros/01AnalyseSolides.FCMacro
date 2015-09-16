@@ -122,6 +122,7 @@ def CreateLine(P1,P2,Show):
 			Part.show(Line)
 	return
 
+
 #Copie Macro WorkFeature
 
 #Print a message on console.   
@@ -1249,7 +1250,7 @@ def ParamTubeCarreRectangle(FaceSection):
 		if abs(ed[1]-L)>=tolerance:
 			nbLdiff.append(ed[0])
 		L=ed[1]
-	print nbLdiff
+	#~ print nbLdiff
 	ListeCotes=[]
 	for EdPr in nbLdiff:
 		V1=Section.Faces[0].Edges[EdPr].tangentAt(0.0)
@@ -1553,119 +1554,6 @@ def TypeSol(Solide):
 	return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord,faces,edges,TriFaces,TriEdges
 
 def GetSection(Sol,faces,edges,triFaces,triEdges):
-
-	#  Projet de refonte de la fonction :
-	
-	#  Chercher le plus grand ensemble de faces voisines (au moins une edge en commun) ayant pour les
-	# faces planes toutes leurs normales coplanaires et pour les faces cylindriques tous leurs axes 
-	# parallèles.
-	# -----> Commence à marcher mais il reste un soucis quand on reboucle sur la face 'FaceRef' trop tôt...
-	#        Pas d'idées pour le moment...
-	
-	
-	#  Chercher toutes les faces planes coplanaires aux faces planes de la liste EnsFaceSection
-	#  Chercher toutes les faces cylindriques ayant le même cylindre de base que les faces cylindriques
-	# de la liste EnsFaceSection
-	#  
-	P0=Base.Vector(0.0,0.0,0.0)	
-	n=0
-	cpt=0
-	SerieDeFaceContigu=[]
-	for Surf in range(1):#pour les n plus grandes surfaces
-		FaceRef=faces[triFaces[Surf][0]]
-		show(FaceRef,"Master")
-		#~ if (str(FaceRef.Surface) == "<Plane object>")  :
-			#~ Norm0=face.Surface.Axis
-			#~ Axis0=0
-		#~ elif (str(FaceRef.Surface) == "<Cylinder object>"):
-			#~ Norm0=0
-			#~ Axis0=face.Surface.Axis
-		Norm0=FaceRef.normalAt(0,0)
-		classEdge=LnCurves(FaceRef.Edges)
-		edgesRange=[]
-		print edgesRange
-		for nb in range(3):
-			if nb==0:
-				edgesRange.append(FaceRef.Edges[classEdge[nb][0]])
-			elif abs(classEdge[nb][1]-classEdge[nb-1][1])<tolerance:
-				edgesRange.append(FaceRef.Edges[classEdge[nb+1][0]])
-			else:
-				edgesRange.append(FaceRef.Edges[classEdge[nb][0]])
-		
-		for edge in edgesRange:#pour chaque arete de la grande surface courante
-			SerieDeFaceContigu.append([[],[]])
-			SerieDeFaceContigu[n][0].append(FaceRef)
-			for face in faces:#pour chaque face du solide
-				if not face.isEqual(FaceRef) :
-					for ed in face.Edges:#pour chaque arete de la face précédente
-						if ed.isPartner(edge):#si l'arete est commune
-							SerieDeFaceContigu[n][0].append(face)
-							SerieDeFaceContigu[n][1].append(ed)
-							show(face,"Slave")
-							Norm1=face.normalAt(0,0)
-							Plan=Norm0.cross(Norm1)
-							print u"Plan"
-							print Plan
-							test=1
-							faceold=face
-							#~ boucle=0
-							while test==1:
-								for edgeold in faceold.Edges:
-									for facen in faces:
-										for edn in facen.Edges:
-											if edn.isPartner(edgeold):
-												testFace=1
-												#~ print n
-												for faceMarque in SerieDeFaceContigu[n][0]:
-													if faceMarque.isEqual(facen):
-														testFace=0
-												if testFace==1:
-													if (str(facen.Surface) == "<Plane object>")  :
-														Normn=facen.Surface.Axis
-														print u"Plan"
-														print Normn
-													elif (str(facen.Surface) == "<Cylinder object>"):
-														print u"cylindre"
-														Axis1=facen.Surface.Axis
-														print Axis1
-														Normn=Norm0.cross(Axis1)
-														print Normn
-													#~ Normn=facen.normalAt(0,0)
-													D=Normn.distanceToPlane(P0,Plan)
-													print u"D"
-													print D
-													print u"facen"
-													print facen
-													#~ show(facen,'Face'+str(cpt)+u"n"+str(n))
-													print 'Face'+str(cpt)+u"n"+str(n)
-													print u"------------------------------------"
-													if abs(D)<tolerance:
-														SerieDeFaceContigu[n][0].append(facen)
-														faceold=facen
-														SerieDeFaceContigu[n][1].append(edn)
-														show(facen,'Face'+str(cpt)+u"n"+str(n))
-														print u"Face"+str(cpt)+u"n"+str(n)+u" stockée"
-														for edn2 in facen.Edges:
-															D0=edn2.Vertexes[0].distToShape(FaceRef)
-															D1=edn2.Vertexes[1].distToShape(FaceRef)
-															if abs(D0[0])<tolerance and abs(D1[0])<tolerance:
-																print u"test de sortie de boucle while"
-																test=0
-											cpt=cpt+1
-								#~ boucle=boucle+1
-								#~ if boucle==10:
-									#~ test=0
-			n=n+1
-		#~ SerieDeFaceContigu.append([[]])
-	#~ print SerieDeFaceContigu					
-	#~ for face in SerieDeFaceContigu[0][0]:
-		#~ Part.show(face)#~ print serie
-		#~ print u"------------*************"				
-					
-	
-
-
-
 
 
 	EdgesSol=edges
@@ -2327,7 +2215,7 @@ def ProfilIPN(TypeProf):
 	
 	for mes in profIPN:
 		if abs(Param[0]-mes[1])<=tolerance and abs(Param[1]-mes[2])<=tolerance and abs(Param[2]-mes[3])<=tolerance:
-			TypeIPN=TypeIPN+str(int(mes[1]).encode('utf-8'))
+			TypeIPN=TypeIPN+str(int(mes[1])).encode('utf-8')
 			Test=1
 	 
 	if Test==0:
@@ -2521,7 +2409,7 @@ def ProfilTubeCarreRectangle(TypeProf):
 			TypeTubeCarreRectangle=u"Profil Tube carré "
 		else :
 			TypeTubeCarreRectangle=u"Profil Tube rectangle "
-		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[1]).encode('utf-8')+u" x "+str(Param[0]).encode('utf-8')+u", épaisseur : "+str(Param[2].encode('utf-8'))
+		TypeTubeCarreRectangle=TypeTubeCarreRectangle+str(Param[1]).encode('utf-8')+u" x "+str(Param[0]).encode('utf-8')+u", épaisseur : "+str(Param[2]).encode('utf-8')
 
 	return TypeTubeCarreRectangle,Param[3],Param[4]
 
@@ -2669,8 +2557,8 @@ if sel:
 				RotAndMoveSol(section[6],PointAxe,ParallelEdges[0],ZEdgeSection)
 				
 		for axe in Axes:
-			print axe[0]
-			print axe[1]
+			#~ print axe[0]
+			#~ print axe[1]
 			NomAxe=u"Axe "+axe[1].encode('utf-8')
 			show(axe[0],NomAxe)
 	#~ print TypeSections
