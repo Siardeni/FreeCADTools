@@ -122,14 +122,73 @@ def CreateLine(P1,P2,Show):
 			Part.show(Line)
 	return
 
-def EdgesAreParallels(ed1,ed2,plane):
+def EdgesAreParallels(EdgeA,EdgeB):
 	"contrôle si deux edges sont parallèles"
-	int=ed1.Curve.intersect2d(ed2.Curve,plane)
-	print u"intersection"
-	print int
-	if len(int)==0:
-		parallels=0
-	return parallels,int
+	VA = (EdgeA.Curve.EndPoint - EdgeA.Curve.StartPoint).normalize()
+	VB = (EdgeB.Curve.EndPoint - EdgeB.Curve.StartPoint).normalize()
+	if abs((VA.cross(VB)).Length) <= tolerance:
+		return True
+	else:
+		return False
+	return
+
+def SerieComplementaireFace(Sol,SerieFace):
+	"Renvoi pour une série de face d'un solide l'ensemble des autres faces"
+	SerieComplementaire=[]
+	for face in Sol.Faces:
+		test=1
+		for faceM in SerieFace:
+			if faceM.isEqual(face):
+				test=0
+		if test==1:
+			SerieComplementaire.append(face)
+	return SerieComplementaire		
+	
+
+def FindFaceWithParallelEdge(solI,facesI,facesINeg,edgeI):
+	"Cherche la face dans un solide (sol) qui n'appartient pas à la liste des faces"
+	"et qui a une arête parallele à edge"
+	"Renvoi la face trouvé l'arête parallèle"
+	# "et la liste des faces contenant additionné de la face trouvé"
+	#~ print solI.Faces
+	faceAdjacent=False
+	edgeParallel=False
+	for face in facesINeg:
+		for edge in face.Edges:
+			if edge.isPartner(edgeI):
+				#~ print edge.isPartner(edgeI)
+				faceAdjacent=face
+				#~ show(face,u"facetrouvé")
+	if not faceAdjacent==False:
+		for face in facesI:
+			if faceAdjacent.isEqual(face):
+				#~ print "lll2"
+				#~ print faceAdjacent.isEqual(face)
+				#~ print faceAdjacent.isSame(face)
+				#~ print faceAdjacent.isPartner(face)
+				#~ show(faceAdjacent,"faceAdjacentpbm")
+				#~ show(face,"facepbm")
+				faceAdjacent=False
+	#~ facesI.append(faceAdjacent)
+	distmax=0.0
+	nbEdge=0
+	#~ print "faceAdjacent"
+	#~ print faceAdjacent
+	if faceAdjacent!=False:
+		for edge in faceAdjacent.Edges:
+			if EdgesAreParallels(edgeI,edge)==True:
+				dist=edgeI.distToShape(edge)
+				#~ print "-------------"
+				#~ print "dist"
+				#~ print dist[0]
+				#~ print "-------------"
+				if dist[0]-distmax>tolerance:
+					distmax=dist[0]
+					edgeParallel=faceAdjacent.Edges[nbEdge]
+			if distmax<tolerance:
+				edgeParallel=False
+			nbEdge=nbEdge+1
+	return faceAdjacent,edgeParallel#,facesI
 
 #Copie Macro WorkFeature
 
@@ -219,8 +278,37 @@ def intersecPerpendicularLine(A, B, C, info=0):
                     str(distance).encode('utf-8') + u" is : ")
     return T, distance, Tprime
 
-
-
+def angleBetween(e1, e2):
+    """ Return the angle (in degrees) between 2 edges.
+    """
+    if isinstance(e1,Part.Edge) and isinstance(e2,Part.Edge):
+        # Create the Vector for first edge
+        v1 = e1.Vertexes[-1].Point
+        v2 = e1.Vertexes[0].Point
+        ve1 = v1.sub(v2)
+        # Create the Vector for second edge
+        v3 = e2.Vertexes[-1].Point
+        v4 = e2.Vertexes[0].Point
+        ve2 = v3.sub(v4)
+    elif isinstance(e1,Base.Vector) and isinstance(e2,Base.Vector):
+        ve1 = e1
+        ve2 = e2
+    elif isinstance(e1,Part.Edge) and isinstance(e2,Base.Vector):
+        v1 = e1.Vertexes[-1].Point
+        v2 = e1.Vertexes[0].Point
+        ve1 = v1.sub(v2)
+        ve2 = e2
+    elif isinstance(e1,Base.Vector) and  isinstance(e2,Part.Edge):
+        ve1 = e1
+        v3 = e2.Vertexes[-1].Point
+        v4 = e2.Vertexes[0].Point
+        ve2 = v3.sub(v4)   
+    else:
+        return
+    
+    angle = ve1.getAngle(ve2)
+    import math
+    return math.degrees(angle), angle
 
 
 #
@@ -1258,7 +1346,7 @@ def ParamTubeCarreRectangle(FaceSection):
 		if abs(ed[1]-L)>=tolerance:
 			nbLdiff.append(ed[0])
 		L=ed[1]
-	print nbLdiff
+	#~ print nbLdiff
 	ListeCotes=[]
 	for EdPr in nbLdiff:
 		V1=Section.Faces[0].Edges[EdPr].tangentAt(0.0)
@@ -1557,8 +1645,6 @@ def TypeSol(Solide):
 				if LMax/lmin<20.0: #Critère pour savoir si on est sur un plat ou sur une plaque
 					TypeSolide=3
 	
-	
-	
 	return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord,faces,edges,TriFaces,TriEdges
 
 def GetSection(Sol,faces,edges,triFaces,triEdges):
@@ -1582,7 +1668,7 @@ def GetSection(Sol,faces,edges,triFaces,triEdges):
 	SerieDeFaceContigu=[]
 	for Surf in range(1):#pour les n plus grandes surfaces
 		FaceRef=faces[triFaces[Surf][0]]
-		show(FaceRef,"Master")
+		#~ show(FaceRef,"Master")
 		#~ if (str(FaceRef.Surface) == "<Plane object>")  :
 			#~ Norm0=face.Surface.Axis
 			#~ Axis0=0
@@ -1592,7 +1678,6 @@ def GetSection(Sol,faces,edges,triFaces,triEdges):
 		Norm0=FaceRef.normalAt(0,0)
 		classEdge=LnCurves(FaceRef.Edges)
 		edgesRange=[]
-		#~ print edgesRange
 		# Filtre les 3 plus grandes arrêtes de FaceRef
 		for nb in range(3):
 			if nb==0:
@@ -1601,113 +1686,48 @@ def GetSection(Sol,faces,edges,triFaces,triEdges):
 				edgesRange.append(FaceRef.Edges[classEdge[nb+1][0]])
 			else:
 				edgesRange.append(FaceRef.Edges[classEdge[nb][0]])
-		
 		for edge in edgesRange:#pour chaque arete de la grande surface courante filtré ci-dessus
 			SerieDeFaceContigu.append([[],[]])
 			SerieDeFaceContigu[n][0].append(FaceRef)
-			for face in faces:#pour chaque face du solide
-				if not face.isEqual(FaceRef) :
-					for ed in face.Edges:#pour chaque arete de la face précédente
-						if ed.isPartner(edge):#si l'arete est commune
-							SerieDeFaceContigu[n][0].append(face)
-							SerieDeFaceContigu[n][1].append(ed)
-							show(face,"Slave")
-							Norm1=face.normalAt(0,0)
-							Plan=Norm0.cross(Norm1)
-							print u"Plan"
-							print Plan
-							test=1
-							faceold=face
-							for edm in face.Edges:
-								print edm
-								print ed
-									
-								#~ if EdgesAreParallels(edm,ed,face.Surface)==1:
-									#~ print "essai"
-								#~ else:
-									#~ test=0
-							boucle=0
-							while test==1:
-								for edgeold in faceold.Edges:
-									for facen in faces:
-										for edn in facen.Edges:
-											if edn.isPartner(edgeold):
-												
-												print "en travaux"
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												
-												#~ testFace=1
-												#~ print n
-												#~ for faceMarque in SerieDeFaceContigu[n][0]:
-													#~ if faceMarque.isEqual(facen):
-														#~ testFace=0
-												#~ if testFace==1:
-													#~ if (str(facen.Surface) == "<Plane object>")  :
-														#~ Normn=facen.Surface.Axis
-														#~ print u"Plan"
-														#~ print Normn
-													#~ elif (str(facen.Surface) == "<Cylinder object>"):
-														#~ print u"cylindre"
-														#~ Axis1=facen.Surface.Axis
-														#~ print Axis1
-														#~ Normn=Norm0.cross(Axis1)
-														#~ print Normn
-													#~ Normn=facen.normalAt(0,0)
-													#~ D=Normn.distanceToPlane(P0,Plan)
-													#~ print u"D"
-													#~ print D
-													#~ print u"facen"
-													#~ print facen
-													#~ show(facen,'Face'+str(cpt)+u"n"+str(n))
-													#~ print 'Face'+str(cpt)+u"n"+str(n)
-													#~ print u"------------------------------------"
-													#~ if abs(D)<tolerance:
-														#~ SerieDeFaceContigu[n][0].append(facen)
-														#~ faceold=facen
-														#~ SerieDeFaceContigu[n][1].append(edn)
-														#~ show(facen,'Face'+str(cpt)+u"n"+str(n))
-														#~ print u"Face"+str(cpt)+u"n"+str(n)+u" stockée"
-														#~ for edn2 in facen.Edges:
-															#~ D0=edn2.Vertexes[0].distToShape(FaceRef)
-															#~ D1=edn2.Vertexes[1].distToShape(FaceRef)
-															#~ if abs(D0[0])<tolerance and abs(D1[0])<tolerance:
-																#~ print u"test de sortie de boucle while"
-																#~ test=0
-																
-																
-																
-																
-																
-																
-																
-																
-																
-											cpt=cpt+1
-								boucle=boucle+1
-								if boucle==10:
-									test=0
+			#~ print SerieDeFaceContigu[n][0]
+			Test=0
+			#~ boucle=0
+			while Test==0:
+				#~ print "boucle while"
+				#~ print SerieDeFaceContigu[n][0]
+				SerieInverse=SerieComplementaireFace(Sol.Shape,SerieDeFaceContigu[n][0])
+				FaceAdjacente,edgeParallel=FindFaceWithParallelEdge(Sol.Shape,SerieDeFaceContigu[n][0],SerieInverse,edge)
+				#~ print "p0"
+				if FaceAdjacente==False:
+					#~ print "p1"
+					Test=1
+				elif edgeParallel==False:
+					#~ print "p2"
+					Test=1
+				else :
+					#~ print "p3"
+					SerieDeFaceContigu[n][0].append(FaceAdjacente)
+					SerieDeFaceContigu[n][1].append(edgeParallel)
+					#~ show(FaceAdjacente,"FaceAdjacente")
+					#~ show(edgeParallel,"edgeParallel")
+					edge=edgeParallel
+				#~ boucle=boucle+1
+				#~ if boucle==1:
+					#~ Test=1
+			
+			
+			
 			n=n+1
-		#~ SerieDeFaceContigu.append([[]])
-	#~ print SerieDeFaceContigu					
-	#~ for face in SerieDeFaceContigu[0][0]:
-		#~ Part.show(face)#~ print serie
-		#~ print u"------------*************"				
-					
+			
+	#~ print SerieDeFaceContigu			
+			
+			
+			
+			
+			
+			
+			
+				
 	
 
 
@@ -2715,8 +2735,8 @@ if sel:
 				RotAndMoveSol(section[6],PointAxe,ParallelEdges[0],ZEdgeSection)
 				
 		for axe in Axes:
-			print axe[0]
-			print axe[1]
+			#~ print axe[0]
+			#~ print axe[1]
 			NomAxe=u"Axe "+axe[1].encode('utf-8')
 			show(axe[0],NomAxe)
 	#~ print TypeSections
