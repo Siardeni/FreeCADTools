@@ -32,20 +32,20 @@ def getPathFromFile(fileName):
     except ValueError:
         pass
     return fileName[0:i+1]
-	
+    
 def gethomePath():
-	"""Get the home directory
-	@return homedirectory
-	"""
-	path=os.path.expanduser('~')
-	return path
+    """Get the home directory
+    @return homedirectory
+    """
+    path=os.path.expanduser('~')
+    return path
 
 def CheminEchange(Choix):
-	plateform=os.sys.platform
-	if plateform=="linux2":
-		if Choix==1:
-			CheminEchange='/home/nico/.FreeCAD/Echanges FreeCAD'
-	else :
-		if Choix==1:
-			CheminEchange='E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD'
-	return CheminEchange
+    plateform=os.sys.platform
+    if plateform=="linux2":
+        if Choix==1:
+            CheminEchange='/home/nico/.FreeCAD/Echanges FreeCAD'
+    else :
+        if Choix==1:
+            CheminEchange='E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD'
+    return CheminEchange
