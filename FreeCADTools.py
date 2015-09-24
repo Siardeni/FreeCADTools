@@ -2166,7 +2166,7 @@ class MExtract:
                     if name[0:4]=="Face":
                         noFace=int(name[4:7])
                         makeExtract(obj,noFace,None,None)
-                        print "Surface : "+(str(float(int(obj.Shape.Area*100+0.49))/100))+" mm2"
+                        print "Surface : "+(str(float(int(obj.Shape.Faces[noFace-1].Area*100+0.49))/100))+" mm2"
                     elif name[0:4]=="Edge":
                         noEdge=int(name[4:7])
                         makeExtract(obj,None,noEdge,None)
