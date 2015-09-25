@@ -216,13 +216,30 @@ def Export_vers_dxf(obj,Nom_fichier):
     liste_dxf=dxf_output.split('\n')
     n=0
     for ligne in liste_dxf:
-        print ligne.find('e-01')
         if ligne.find('e-01')!=-1:
             liste_dxf[n]='0'
         n+=1
     dxf_output='\n'.join(liste_dxf)
     FILE.write(dxf_output)
     FILE.close()
+
+def Sort_txt_platine(infos_plaques):#liste nom,epaisseur,surface,longueur_coupe,poids
+    os.chdir(Chemin.CheminEchange(1))
+    obFichier = open('Info Plaques.txt','w')
+    obFichier.write("\n")
+    obFichier.write("Rapport Calpinage Barres :\n")
+    obFichier.write("\n")
+    datEtHeure=time.strftime('%d/%m/%y %H:%M',time.localtime())
+    obFichier.write("("+datEtHeure+")""\n")
+    obFichier.write("\n")
+    obFichier.write("--------------------------------------------------------------------------------\n")
+    for plaque in infos_plaques:
+        nom,epaisseur,surface,longueur_coupe,poids=plaque[0],plaque[1],plaque[2],plaque[3],plaque[4]
+        obFichier.write(nom+'   '+epaisseur+'   '+surface+'   '+longueur_coupe+'   '+poids+'\n")    
+    obFichier.close()
+        
+
+
 
 
 ####################################################################
@@ -1683,7 +1700,7 @@ def TypeSol(Solide):
     
     return TypeSolide,Label,faces[TriFaces[1][0]],ListeEdgesBord,faces,edges,TriFaces,TriEdges
 
-def GetSection(Sol,faces,edges,triFaces,triEdges):
+def GetSection2(Sol,faces,edges,triFaces,triEdges):
 
     #  Projet de refonte de la fonction :
     
@@ -1742,22 +1759,11 @@ def GetSection(Sol,faces,edges,triFaces,triEdges):
                         edge=edgeParallel
                 Serie_De_Face_Contigu[n].append(Surface_Totale)
                 n=n+1
-    
-    Compteur=0
-    Surf_max=0
-    for Record in Serie_De_Face_Contigu:
-        if Record[-1]>Surf_max:
-            Surf_max=Record[-1]
-            No_Record=Compteur
-        Compteur+=1
-    Serie_De_Face_Contigu[No_Record].pop()
-    Serie_De_Face_Contigu=Serie_De_Face_Contigu[No_Record]
-    
-    #  Chercher toutes les faces planes coplanaires aux faces planes de la liste EnsFaceSection
-    #  Chercher toutes les faces cylindriques ayant le même cylindre de base que les faces cylindriques
-    # de la liste EnsFaceSection
+                
+                
+                
 
-    
+def GetSection(Sol,faces,edges,triFaces,triEdges):
 
 
 
@@ -2299,6 +2305,11 @@ def RotAndMoveSol(Sol,Pt,X,Z):
     V=Base.Vector(0.0,0.0,0.0)
     VX=Base.Vector(1.0,0.0,0.0)
     VZ=Base.Vector(0.0,0.0,1.0)
+    N=Z.cross(VZ)
+    pos=V
+    center=Pt
+    rot0=FreeCAD.Rotation(0.0,0.0,0.0)
+    
     
     if abs(Z.x)-abs(VZ.x)<tolerance and abs(Z.y)-abs(VZ.y)<tolerance and abs(Z.z)-abs(VZ.z)<tolerance:
         Alpha=-math.degrees(VX.getAngle(X))
@@ -2333,12 +2344,13 @@ def RotAndMoveSol(Sol,Pt,X,Z):
     mov1y=-SolRAM.BoundBox.YMax/2
     mov1z=-SolRAM.BoundBox.ZMax/2
     mov1=Base.Vector(0,mov1y,mov1z)
-    #~ print mov1
+    print mov1
     SolRAM.Placement=App.Placement(mov1, rot0, center).multiply(SolRAM.Placement)
         
     Longueur=SolRAM.BoundBox.XLength
         
-    #~ Part.show(SolRAM)
+    show(SolRAM,Sol.Name)
+    
     
     return SolRAM,Longueur
     
@@ -2738,6 +2750,9 @@ if sel:
             else :
                 print section[4]
                 print TypeSections[n][0]+u" Longueur : "+str(float(int(section[1]*100+0.49))/100).encode('utf-8')+u" mm"
+                # A Faire 
+                # Organiser les données avec format 
+                # Sortir le poids au mètre du profil
             n=n+1
     
     print Plaques
@@ -2749,6 +2764,12 @@ if sel:
         for plaque in Plaques:
             RotAndMoveFace(plaque[0])
             #Rapatrie le nom du Label de la plaque
+            Nom=plaque[1].encode('utf-8')
+            Epaisseur=
+            Surface=
+            Longueur_coupe=
+            Poids=
+            
             print u"---------------------"
             print plaque[1].encode('utf-8')
             Surface=plaque[0].Area
@@ -2760,6 +2781,7 @@ if sel:
             Longueur_Coupe_plaque=Longueur_Coupe(plaque[0])
             #Rapatrie l'épaisseur de la plaque
             Epaisseur=str(float(int(Epaisseur*100+0.49))/100).encode('utf-8')
+            
             print u"Epaisseur : "+Epaisseur+u" mm"
             print u"Masse (Acier) : "+str(float(int(Masse*100+0.49))/100).encode('utf-8')+u" kg"
             print u"Masse (Densité 1) : "+str(float(int(MasseSansDensite*100+0.49))/100).encode('utf-8')+u" kg"
@@ -2784,7 +2806,15 @@ if sel:
             obj=show(plaque[0],name)
             Nom_fichier_dxf=Construction_Nom_Plaque(plaque)
             Export_vers_dxf(obj,Nom_fichier_dxf)
-            #Identifier les plaques identiques
+        #Sort_txt_platine(Infos_plaques):#liste nom,epaisseur,surface,longueur_coupe,poids
+            # A Faire 
+            # Identifier les plaques identiques
+            # Sortir la boundbox pour les platines rectangulaires au carrées
+            # Ordoner données avec commande format
+            # Sortir le taraudage quand le diamètre n'est pas rond...
+            
+        #Coller résultat dans le presse papier
+            
             
         
         

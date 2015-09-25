@@ -216,7 +216,6 @@ def Export_vers_dxf(obj,Nom_fichier):
     liste_dxf=dxf_output.split('\n')
     n=0
     for ligne in liste_dxf:
-        print ligne.find('e-01')
         if ligne.find('e-01')!=-1:
             liste_dxf[n]='0'
         n+=1
@@ -1685,81 +1684,6 @@ def TypeSol(Solide):
 
 def GetSection(Sol,faces,edges,triFaces,triEdges):
 
-    #  Projet de refonte de la fonction :
-    
-    #  Chercher le plus grand ensemble de faces voisines (au moins une edge en commun) ayant pour les
-    # faces planes toutes leurs normales coplanaires et pour les faces cylindriques tous leurs axes 
-    # parallèles.
-    P0=Base.Vector(0.0,0.0,0.0)    
-    n=0
-    cpt=0
-    Serie_De_Face_Contigu=[]
-    for Surf in range(1):#pour les n plus grandes surfaces
-        Face_Ref=faces[triFaces[Surf][0]]
-        Surface_Ref=Face_Ref.Area
-        #~ show(Face_Ref,"Master")
-        if (str(Face_Ref.Surface) == "<Cylinder object>") and len(Face_Ref.Edges)==3:
-            Serie_De_Face_Contigu.append([Face_Ref,Surface_Ref])
-        #~ elif (str(Face_Ref.Surface) == "<xxxxxxxxxxxxxxxx>") :
-            
-        else:
-            Norm0=Face_Ref.normalAt(0,0)
-            classEdge=LnCurves(Face_Ref.Edges)
-            edgesRange=[]
-            # Filtre les 3 plus grandes arrêtes de Face_Ref
-            nbedge=len(classEdge)
-            if nbedge>3:
-                nbedge=3
-            for nb in range(nbedge):
-                if nb==0:
-                    edgesRange.append(Face_Ref.Edges[classEdge[nb][0]])
-                #~ elif abs(classEdge[nb][1]-classEdge[nb-1][1])<tolerance:
-                    #~ edgesRange.append(Face_Ref.Edges[classEdge[nb][0]])
-                else:
-                    edgesRange.append(Face_Ref.Edges[classEdge[nb][0]])
-            for edge in edgesRange:#pour chaque arete de la grande surface courante filtré ci-dessus
-                Serie_De_Face_Contigu.append([Face_Ref])
-                Surface_Totale=Surface_Ref
-                #~ print Serie_De_Face_Contigu[n][0]
-                Test=0
-                while Test==0:
-                    #~ print Serie_De_Face_Contigu[n][0]
-                    SerieInverse=Serie_Complementaire_Face(Sol.Shape,Serie_De_Face_Contigu[n])
-                    Face_Adjacente,edgeParallel=FindFaceWithParallelEdge(Sol.Shape,Serie_De_Face_Contigu[n],SerieInverse,edge)
-                    #~ print "p0"
-                    if Face_Adjacente==False:
-                        #~ print "p1"
-                        Test=1
-                    elif edgeParallel==False:
-                        #~ print "p2"
-                        Test=1
-                    else :
-                        #~ print "p3"
-                        Surface_Totale=Surface_Totale+Face_Adjacente.Area
-                        Serie_De_Face_Contigu[n].append(Face_Adjacente)
-                        #~ show(Face_Adjacente,"Face_Adjacente")
-                        #~ show(edgeParallel,"edgeParallel")
-                        edge=edgeParallel
-                Serie_De_Face_Contigu[n].append(Surface_Totale)
-                n=n+1
-    
-    Compteur=0
-    Surf_max=0
-    for Record in Serie_De_Face_Contigu:
-        if Record[-1]>Surf_max:
-            Surf_max=Record[-1]
-            No_Record=Compteur
-        Compteur+=1
-    Serie_De_Face_Contigu[No_Record].pop()
-    Serie_De_Face_Contigu=Serie_De_Face_Contigu[No_Record]
-    
-    #  Chercher toutes les faces planes coplanaires aux faces planes de la liste EnsFaceSection
-    #  Chercher toutes les faces cylindriques ayant le même cylindre de base que les faces cylindriques
-    # de la liste EnsFaceSection
-
-    
-
-
 
 
 
@@ -2779,6 +2703,8 @@ if sel:
                 print str(oblongHole[0]).encode('utf-8')+u" Trou"+s+u" oblong"+s+u" Diamètre "+str(oblongHole[1]).encode('utf-8')+u" Longueur "+str(oblongHole[2]).encode('utf-8')
             
             print u"---------------------"
+            
+            
             Ep=u" ép "
             name="Plaque "+plaque[1]+Ep+Epaisseur
             obj=show(plaque[0],name)
