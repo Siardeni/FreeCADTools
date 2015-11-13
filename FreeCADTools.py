@@ -1197,7 +1197,7 @@ class Calpinage1D:
         obj.addProperty("App::PropertyDistance","EpTraitCoupe","Parametres","Epaisseur Trait de coupe").EpTraitCoupe=3.0
         obj.addProperty("App::PropertyDistance","LongueurBarreBruteR","Parametres","Longueur Barre Brute").LongueurBarreBruteR=6000.0
         obj.addProperty("App::PropertyEnumeration","LongueurBarreBrute","Parametres","Choix du tri de la liste des pieces")
-        obj.LongueurBarreBrute = ['6000','3000','2500','5410 (poteaux Fermod)','5800 (echelons Fermod)','6730 (echelons Fermod)','Longueur reglable']
+        obj.LongueurBarreBrute = ['6000','6000','3000','2500','2000','Longueur reglable']
         obj.addProperty("App::PropertyEnumeration","PiecesACouper","Tri","Choix du tri de la liste des pieces")
         obj.PiecesACouper = ['Croissant','Decroissant','Original']
         obj.addProperty("App::PropertyFloatList","PiecesACouperCroissant","Parametres","Longueurs Pieces").PiecesACouperCroissant
@@ -1304,13 +1304,23 @@ class MasterTracerPieces:
         obj.Proxy = self
     def execute(self, fp):
         ListeANettoyer=App.ActiveDocument.Objects
+        old_existant=1
         for n in range(len(ListeANettoyer)):
-            if ListeANettoyer[n].Name[0:2]=="Ra":
-                # print "Rapport : ",ListeANettoyer[n].Name
-                FreeCAD.ActiveDocument.removeObject(ListeANettoyer[n].Name)
-            elif ListeANettoyer[n].Name[0:2]=="Pi":
-                # print "Piece : ",ListeANettoyer[n].Name
-                FreeCAD.ActiveDocument.removeObject(ListeANettoyer[n].Name)
+            name=ListeANettoyer[n].Name
+            if name[0:3]=="Old":
+                old_existant=0
+                grp=App.ActiveDocument.getObject(name)
+        if old_existant==1:
+            grp=FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroup","Old")
+        for n in range(len(ListeANettoyer)):
+            name=ListeANettoyer[n].Name
+            if name[0:2]=="Ra" or ListeANettoyer[n].Name[0:2]=="Pi":
+                obj=FreeCAD.ActiveDocument.getObject(name)
+                grp.addObject(obj)
+                Gui.ActiveDocument.getObject(grp.Name).Visibility=False
+                Gui.ActiveDocument.getObject(grp.Name).Visibility=True
+                Gui.ActiveDocument.getObject(grp.Name).Visibility=False
+                #~ Gui.ActiveDocument.removeObject(name)
         
         rapport=FreeCAD.ActiveDocument.addObject("Part::FeaturePython","Rapport")
         RapportCalpinage1D(rapport)
@@ -1331,7 +1341,7 @@ class MasterTracerPieces:
             pieces[n].LPiece=lPiece
             pieces[n].HPiece=fp.InfosCalpinage.EpBarreBrute
             pieces[n].ViewObject.Proxy=0
-        
+       
 class SlaveTracerPieces:            
     def __init__(self, obj):
         obj.addProperty("App::PropertyFloat","PosX","SlaveTracerPieces","Position ne X des pieces").PosX

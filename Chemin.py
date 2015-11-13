@@ -44,8 +44,8 @@ def CheminEchange(Choix):
     plateform=os.sys.platform
     if plateform=="linux2":
         if Choix==1:
-            CheminEchange='/home/nico/.FreeCAD/Echanges FreeCAD'
+            CheminEchange='/home/nico/Documents/Fichiers Nico/FreeCAD/Echanges FreeCAD'
     else :
         if Choix==1:
-            CheminEchange='E:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD'
+            CheminEchange='C:/Nico/02 - CAO/FreeCAD/Echanges FreeCAD'
     return CheminEchange
